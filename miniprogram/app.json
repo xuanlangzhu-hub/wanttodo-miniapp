@@ -4,10 +4,10 @@
     "pages/example/index"
   ],
   "window": {
-    "backgroundColor": "#F6F6F6",
+    "backgroundColor": "#F5F7FB",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "云开发 QuickStart",
+    "navigationBarBackgroundColor": "#F5F7FB",
+    "navigationBarTitleText": "WantTodo",
     "navigationBarTextStyle": "black"
   },
   "sitemapLocation": "sitemap.json",

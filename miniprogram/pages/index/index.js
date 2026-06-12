@@ -1,185 +1,195 @@
-// index.js
+const todoApi = require("../../services/todos");
+const authApi = require("../../services/auth");
+
+const STATUS_TABS = [
+  { label: "全部", value: "all" },
+  { label: "进行中", value: "active" },
+  { label: "已完成", value: "completed" },
+];
+
+const wxLogin = () =>
+  new Promise((resolve, reject) => {
+    wx.login({
+      success: resolve,
+      fail: reject,
+    });
+  });
+
 Page({
   data: {
-    showTip: false,
-    powerList: [
-      {
-        title: "云托管",
-        tip: "不限语言的全托管容器服务",
-        showItem: false,
-        item: [
-          {
-            type: "cloudbaserun",
-            title: "云托管调用",
-          },
-        ],
-      },
-      {
-        title: "云函数",
-        tip: "安全、免鉴权运行业务代码",
-        showItem: false,
-        item: [
-          {
-            type: "getOpenId",
-            title: "获取OpenId",
-          },
-          {
-            type: "getMiniProgramCode",
-            title: "生成小程序码",
-          },
-        ],
-      },
-      {
-        title: "数据库",
-        tip: "安全稳定的文档型数据库",
-        showItem: false,
-        item: [
-          {
-            type: "createCollection",
-            title: "创建集合",
-          },
-          {
-            type: "selectRecord",
-            title: "增删改查记录",
-          },
-          // {
-          //   title: '聚合操作',
-          //   page: 'sumRecord',
-          // },
-        ],
-      },
-      {
-        title: "云存储",
-        tip: "自带CDN加速文件存储",
-        showItem: false,
-        item: [
-          {
-            type: "uploadFile",
-            title: "上传文件",
-          },
-        ],
-      },
-      {
-        title: "AI 接入能力",
-        tip: "云开发 AI 接入能力",
-        showItem: false,
-        item: [
-          {
-            type: "model-guide",
-            title: "大模型对话指引",
-          },
-        ],
-      },
-      {
-        title: "AI 智能开发小程序",
-        tip: "连接 AI 开发工具与 MCP 开发小程序",
-        type: "ai-assistant",
-        skipEnvCheck: true,
-        showItem: false,
-        item: [],
-      },
-    ],
-    haveCreateCollection: false,
-    title: "",
-    content: "",
+    statusTabs: STATUS_TABS,
+    status: "all",
+    todos: [],
+    total: 0,
+    page: 1,
+    pageSize: 20,
+    newTitle: "",
+    loading: false,
+    loggedIn: false,
+    userInfo: null,
+    avatarText: "我",
   },
-  onClickPowerInfo(e) {
+
+  onLoad() {
     const app = getApp();
-    const index = e.currentTarget.dataset.index;
-    const powerList = this.data.powerList;
-    const selectedItem = powerList[index];
-    
-    // 检查是否跳过环境配置检测
-    if (!selectedItem.skipEnvCheck && !app.globalData.env) {
-      wx.showModal({
-        title: "提示",
-        content: "请在 `miniprogram/app.js` 中正确配置 `env` 参数",
+    const userInfo = app.globalData.userInfo;
+    this.setData({
+      loggedIn: Boolean(app.globalData.token),
+      userInfo,
+      avatarText: this.getAvatarText(userInfo),
+    });
+
+    if (app.globalData.token) {
+      this.loadTodos(true);
+    }
+  },
+
+  onPullDownRefresh() {
+    this.loadTodos(true).finally(() => wx.stopPullDownRefresh());
+  },
+
+  async onLoginTap() {
+    try {
+      const loginResult = await wxLogin();
+      if (!loginResult.code) {
+        throw new Error("微信登录失败");
+      }
+
+      const authData = await authApi.wechatLogin(loginResult.code);
+      getApp().setAuth(authData.token, authData.userInfo);
+      this.setData({
+        loggedIn: true,
+        userInfo: authData.userInfo,
+        avatarText: this.getAvatarText(authData.userInfo),
       });
+      wx.showToast({ title: "登录成功", icon: "success" });
+      this.loadTodos(true);
+    } catch (error) {
+      this.showError(error);
+    }
+  },
+
+  onInputTitle(event) {
+    this.setData({
+      newTitle: event.detail.value,
+    });
+  },
+
+  async onAddTodo() {
+    if (!this.data.loggedIn) {
+      wx.showToast({ title: "请先登录", icon: "none" });
       return;
     }
-    if (selectedItem.link) {
-      wx.navigateTo({
-        url: `../web/index?url=${selectedItem.link}&title=${selectedItem.title}`,
+
+    const title = this.data.newTitle.trim();
+    if (!title) {
+      wx.showToast({ title: "先写一个待办", icon: "none" });
+      return;
+    }
+
+    try {
+      await todoApi.createTodo({
+        title,
+        description: "",
+        priority: 2,
+        dueDate: null,
       });
-    } else if (selectedItem.type) {
-      wx.navigateTo({
-        url: `/pages/example/index?envId=${this.data.selectedEnv?.envId}&type=${selectedItem.type}`,
-      });
-    } else if (selectedItem.page) {
-      wx.navigateTo({
-        url: `/pages/${selectedItem.page}/index`,
-      });
-    } else if (
-      selectedItem.title === "数据库" &&
-      !this.data.haveCreateCollection
-    ) {
-      this.onClickDatabase(powerList, selectedItem);
-    } else {
-      selectedItem.showItem = !selectedItem.showItem;
-      this.setData({
-        powerList,
-      });
+      this.setData({ newTitle: "" });
+      wx.showToast({ title: "已添加", icon: "success" });
+      this.loadTodos(true);
+    } catch (error) {
+      this.showError(error);
     }
   },
 
-  jumpPage(e) {
-    const { type, page } = e.currentTarget.dataset;
-    console.log("jump page", type, page);
-    if (type) {
-      wx.navigateTo({
-        url: `/pages/example/index?envId=${this.data.selectedEnv?.envId}&type=${type}`,
+  async onToggleTodo(event) {
+    const { id, completed } = event.currentTarget.dataset;
+    try {
+      await todoApi.updateTodo(id, {
+        completed: !completed,
       });
-    } else {
-      wx.navigateTo({
-        url: `/pages/${page}/index?envId=${this.data.selectedEnv?.envId}`,
-      });
+      this.loadTodos(true);
+    } catch (error) {
+      this.showError(error);
     }
   },
 
-  onClickDatabase(powerList, selectedItem) {
-    wx.showLoading({
-      title: "",
+  onDeleteTodo(event) {
+    const { id } = event.currentTarget.dataset;
+    wx.showModal({
+      title: "删除待办",
+      content: "确定删除这条待办吗？",
+      confirmText: "删除",
+      confirmColor: "#d92d20",
+      success: async (result) => {
+        if (!result.confirm) {
+          return;
+        }
+
+        try {
+          await todoApi.deleteTodo(id);
+          wx.showToast({ title: "已删除", icon: "success" });
+          this.loadTodos(true);
+        } catch (error) {
+          this.showError(error);
+        }
+      },
     });
-    wx.cloud
-      .callFunction({
-        name: "quickstartFunctions",
-        data: {
-          type: "createCollection",
-        },
-      })
-      .then((resp) => {
-        if (resp.result.success) {
-          this.setData({
-            haveCreateCollection: true,
-          });
-        }
-        selectedItem.showItem = !selectedItem.showItem;
-        this.setData({
-          powerList,
-        });
-        wx.hideLoading();
-      })
-      .catch((e) => {
-        wx.hideLoading();
-        const { errCode, errMsg } = e;
-        if (errMsg.includes("Environment not found")) {
-          this.setData({
-            showTip: true,
-            title: "云开发环境未找到",
-            content:
-              "如果已经开通云开发，请检查环境ID与 `miniprogram/app.js` 中的 `env` 参数是否一致。",
-          });
-          return;
-        }
-        if (errMsg.includes("FunctionName parameter could not be found")) {
-          this.setData({
-            showTip: true,
-            title: "请上传云函数",
-            content:
-              "在'cloudfunctions/quickstartFunctions'目录右键，选择【上传并部署-云端安装依赖】，等待云函数上传完成后重试。",
-          });
-          return;
-        }
+  },
+
+  onTabTap(event) {
+    const status = event.currentTarget.dataset.status;
+    if (status === this.data.status) {
+      return;
+    }
+
+    this.setData({ status, page: 1 });
+    this.loadTodos(true);
+  },
+
+  async loadTodos(showLoading = false) {
+    this.setData({ loading: true });
+    try {
+      const data = await todoApi.getTodos({
+        page: 1,
+        pageSize: this.data.pageSize,
+        status: this.data.status,
+        sort: "createdAt",
+        order: "desc",
+        showLoading,
       });
+
+      this.setData({
+        todos: data.list || [],
+        total: data.total || 0,
+        page: data.page || 1,
+        pageSize: data.pageSize || this.data.pageSize,
+      });
+    } catch (error) {
+      if (error.statusCode === 401) {
+        getApp().clearAuth();
+        this.setData({
+          loggedIn: false,
+          userInfo: null,
+          todos: [],
+          total: 0,
+        });
+      }
+      this.showError(error);
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
+  showError(error) {
+    wx.showToast({
+      title: error.message || "操作失败",
+      icon: "none",
+    });
+  },
+
+  getAvatarText(userInfo) {
+    const nickname = userInfo && userInfo.nickname ? userInfo.nickname : "";
+    return nickname ? nickname.slice(0, 1) : "我";
   },
 });

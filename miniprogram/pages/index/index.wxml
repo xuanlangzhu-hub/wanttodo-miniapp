@@ -1,29 +1,66 @@
-<!--index.wxml-->
-<view class="container">
-  <view class="title">快速了解云开发</view>
-  <view class="top_tip">免鉴权接口调用 免部署后台 高并发</view>
-  <view class="power" wx:key="title" wx:for="{{powerList}}" wx:for-item="power">
-    <view class="power_info" data-index="{{index}}" data-type="{{ power.type }}" bindtap="onClickPowerInfo">
-      <view class="power_info_text">
-        <view class="power_info_text_title">
-          {{power.title}}
-          <view class="power_info_text_tag" wx:if="{{power.tag}}">{{power.tag}}</view>
-        </view>
-        <view class="power_info_text_tip">{{power.tip}}</view>
-      </view>
-      <image wx:if="{{!power.showItem && power.item.length}}" class="power_info_more" src="../../images/arrow.svg"></image>
-      <image wx:if="{{power.showItem && power.item.length}}" class="power_info_less" src="../../images/arrow.svg"></image>
-      <image wx:if="{{!power.item.length}}" class="power_item_icon" src="../../images/arrow.svg"></image>
+<view class="page">
+  <view class="header">
+    <view>
+      <view class="eyebrow">WantTodo</view>
+      <view class="title">今天要做什么？</view>
     </view>
-    <view wx:if="{{power.showItem}}">
-      <view wx:key="title" wx:for="{{power.item}}">
-        <view class="line"></view>
-        <view class="power_item" bindtap="jumpPage" data-type="{{ item.type }}" data-page="{{item.page}}">
-          <view class="power_item_title">{{item.title}}</view>
-          <image class="power_item_icon" src="../../images/arrow.svg"></image>
-        </view>
-      </view>
+    <button wx:if="{{!loggedIn}}" class="login-button" bindtap="onLoginTap">登录</button>
+    <view wx:else class="avatar">
+      <image wx:if="{{userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <text wx:else>{{avatarText}}</text>
     </view>
   </view>
-  <cloud-tip-modal showTipProps="{{showTip}}" title="{{title}}" content="{{content}}"></cloud-tip-modal>
+
+  <view class="composer">
+    <input
+      class="todo-input"
+      placeholder="添加一个待办"
+      value="{{newTitle}}"
+      confirm-type="done"
+      bindinput="onInputTitle"
+      bindconfirm="onAddTodo"
+    />
+    <button class="add-button" bindtap="onAddTodo">添加</button>
+  </view>
+
+  <view class="tabs">
+    <view
+      wx:for="{{statusTabs}}"
+      wx:key="value"
+      class="tab {{status === item.value ? 'active' : ''}}"
+      data-status="{{item.value}}"
+      bindtap="onTabTap"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <view class="summary">共 {{total}} 条</view>
+
+  <view wx:if="{{!loading && todos.length === 0}}" class="empty">
+    <view class="empty-title">还没有待办</view>
+    <view class="empty-text">先添加一条，后端连通后会显示在这里。</view>
+  </view>
+
+  <view class="todo-list">
+    <view wx:for="{{todos}}" wx:key="id" class="todo-item {{item.completed ? 'done' : ''}}">
+      <view
+        class="check"
+        data-id="{{item.id}}"
+        data-completed="{{item.completed}}"
+        bindtap="onToggleTodo"
+      >
+        <text wx:if="{{item.completed}}">✓</text>
+      </view>
+      <view class="todo-main">
+        <view class="todo-title">{{item.title}}</view>
+        <view wx:if="{{item.description}}" class="todo-desc">{{item.description}}</view>
+        <view class="todo-meta">
+          <text>优先级 {{item.priority}}</text>
+          <text wx:if="{{item.dueDate}}">截止 {{item.dueDate}}</text>
+        </view>
+      </view>
+      <button class="delete-button" data-id="{{item.id}}" bindtap="onDeleteTodo">删除</button>
+    </view>
+  </view>
 </view>
