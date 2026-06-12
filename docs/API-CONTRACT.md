@@ -311,7 +311,7 @@ GET /user/profile
 1. 在 `miniprogram/utils/api.js` 封装一个 `request()` 函数，自动拼接 Base URL 和 Authorization
 2. 本地开发时 Base URL 指向 `http://localhost:5000/api/v1`
 3. 真机调试和正式部署时，修改 `app.js` 里的全局 baseUrl 即可
-4. 接口文档里所有示例都是 `data` 里的内容，解包时取 `response.data` 即可
+4. **注意层级**：`wx.request` 返回的 `response.data` 是整个响应体 `{ code, message, data }`，真正的业务数据在 `response.data.data` 里
 
 ---
 
