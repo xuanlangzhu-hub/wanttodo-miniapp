@@ -1,0 +1,23 @@
+# 微信小程序 - 私有配置（每人不同，不提交）
+project.private.config.json
+
+# 依赖
+node_modules/
+
+# 云函数 - node_modules（如果有）
+cloudfunctions/**/node_modules/
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/settings.json
+
+# 日志
+*.log
+npm-debug.log*
