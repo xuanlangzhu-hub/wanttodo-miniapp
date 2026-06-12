@@ -1,6 +1,6 @@
-# API 接口约定 v0.1
+# API 接口约定 v0.2
 
-> **状态：草案** | 微信小程序前端 ↔ ASP.NET 后端
+> **状态：已确认** | 微信小程序前端（Codex）↔ ASP.NET 后端（Claude）
 
 ---
 
@@ -8,21 +8,42 @@
 
 | 项目 | 约定 |
 |------|------|
-| Base URL | `https://api.example.com/api/v1`（待定） |
+| 本地开发 | `http://localhost:5000/api/v1` |
+| 真机调试 | 局域网 IP 或内网穿透，`config.js` 中切换 |
+| 正式部署 | `https://<你的域名>/api/v1`（待部署时确认） |
 | 请求格式 | `application/json; charset=utf-8` |
 | 鉴权方式 | Header `Authorization: Bearer <token>` |
 | 时间格式 | ISO 8601（`2026-06-12T15:30:00+08:00`） |
-| 通用错误格式 | `{ "code": 错误码, "message": "描述" }` |
 
-### 通用错误码
+### 响应格式（统一）
 
-| code | 含义 |
+成功和失败共用同一结构：
+
+```json
+{
+  "code": 200,
+  "message": "可选提示信息",
+  "data": { ... }
+}
+```
+
+| 字段 | 说明 |
 |------|------|
-| 200 | 成功 |
-| 400 | 参数错误 |
-| 401 | 未登录/token 过期 |
-| 404 | 资源不存在 |
-| 500 | 服务端错误 |
+| code | 业务状态码，与 HTTP 状态码保持一致 |
+| message | 提示信息，成功时可省略，失败时必填 |
+| data | 业务数据，成功时有值，失败时为 `null` |
+
+### HTTP 状态码 = JSON code
+
+| HTTP | code | 含义 |
+|------|------|------|
+| 200 | 200 | 成功 |
+| 400 | 400 | 参数错误 |
+| 401 | 401 | 未登录 / token 过期 |
+| 404 | 404 | 资源不存在 |
+| 500 | 500 | 服务端错误 |
+
+> **规则：HTTP 状态码和 JSON body 里的 code 永远相同。前端优先看 HTTP 状态码做分支处理。**
 
 ---
 
@@ -41,7 +62,7 @@ POST /auth/wechat-login
 }
 ```
 
-**响应：**
+**成功响应：** `HTTP 200`
 ```json
 {
   "code": 200,
@@ -57,38 +78,73 @@ POST /auth/wechat-login
 }
 ```
 
+**失败响应：** `HTTP 400`
+```json
+{
+  "code": 400,
+  "message": "code 无效或已过期",
+  "data": null
+}
+```
+
 ---
 
-## 3. Todo 模块
+## 3. Todo 数据模型
 
-### 3.1 获取 Todo 列表
+### 3.1 字段定义（固定）
 
-```
-GET /todos?page=1&pageSize=20&status=all
-```
-
-| 参数 | 类型 | 必填 | 说明 |
+| 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| page | int | 否 | 页码，默认 1 |
-| pageSize | int | 否 | 每页条数，默认 20 |
-| status | string | 否 | `all` / `active` / `completed` |
+| id | string | — | 服务端生成，前端只读 |
+| title | string | 是 | 最长 200 字符 |
+| description | string | 否 | 最长 1000 字符，**为空时返回 `""`，永不返回 null** |
+| completed | bool | — | 默认 false |
+| priority | int | 否 | 0=无, 1=高, 2=中, 3=低；默认 2 |
+| dueDate | string? | 否 | ISO 8601 日期，无截止日期时为 `null` |
+| createdAt | string | — | 服务端生成 |
+| updatedAt | string | — | 服务端生成，每次更新自动刷新 |
 
-**响应：**
+### 3.2 完整示例
+
+```json
+{
+  "id": "todo_a1b2c3",
+  "title": "完成项目设计书",
+  "description": "",
+  "completed": false,
+  "priority": 1,
+  "dueDate": "2026-06-30T23:59:59+08:00",
+  "createdAt": "2026-06-12T15:30:00+08:00",
+  "updatedAt": "2026-06-12T15:30:00+08:00"
+}
+```
+
+---
+
+## 4. Todo 接口
+
+### 4.1 获取列表
+
+```
+GET /todos?page=1&pageSize=20&status=all&sort=createdAt&order=desc
+```
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| page | int | 否 | 1 | 页码 |
+| pageSize | int | 否 | 20 | 每页条数，最大 100 |
+| status | string | 否 | all | `all` / `active` / `completed` |
+| sort | string | 否 | createdAt | `createdAt` / `priority` / `dueDate` |
+| order | string | 否 | desc | `asc` / `desc` |
+
+**默认排序：按创建时间倒序（最新的在最上面）。**
+
+**成功响应：** `HTTP 200`
 ```json
 {
   "code": 200,
   "data": {
-    "list": [
-      {
-        "id": "todo_1",
-        "title": "完成项目设计书",
-        "description": "写清楚页面结构和接口",
-        "completed": false,
-        "priority": 1,
-        "createdAt": "2026-06-12T15:30:00+08:00",
-        "updatedAt": "2026-06-12T15:30:00+08:00"
-      }
-    ],
+    "list": [ "... Todo 对象数组 ..." ],
     "total": 42,
     "page": 1,
     "pageSize": 20
@@ -98,88 +154,93 @@ GET /todos?page=1&pageSize=20&status=all
 
 ---
 
-### 3.2 创建 Todo
+### 4.2 创建
 
 ```
 POST /todos
 ```
 
-**请求：**
 ```json
 {
   "title": "完成项目设计书",
-  "description": "写清楚页面结构和接口（选填）",
-  "priority": 1
+  "description": "选填描述",
+  "priority": 1,
+  "dueDate": "2026-06-30T23:59:59+08:00"
 }
 ```
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| title | string | 是 | 最长 200 字符 |
-| description | string | 否 | 最长 1000 字符 |
-| priority | int | 否 | 0=无, 1=高, 2=中, 3=低；默认 2 |
-
-**响应：**
+**成功响应：** `HTTP 200`
 ```json
 {
   "code": 200,
-  "data": {
-    "id": "todo_1",
-    "title": "完成项目设计书",
-    "description": "...",
-    "completed": false,
-    "priority": 1,
-    "createdAt": "2026-06-12T15:30:00+08:00",
-    "updatedAt": "2026-06-12T15:30:00+08:00"
-  }
+  "data": { "... 完整的 Todo 对象 ..." }
+}
+```
+
+**失败响应（缺少 title）：** `HTTP 400`
+```json
+{
+  "code": 400,
+  "message": "title 不能为空",
+  "data": null
 }
 ```
 
 ---
 
-### 3.3 更新 Todo
+### 4.3 更新（部分字段）
+
+> 改为 `PATCH`，只传要改的字段，未传字段保持不变。
 
 ```
-PUT /todos/{id}
+PATCH /todos/{id}
 ```
 
-**请求：**（全部字段可选，只传要改的）
+**请求：**（所有字段可选）
 ```json
 {
   "title": "修改后的标题",
-  "description": "修改后的描述",
-  "completed": true,
-  "priority": 2
+  "completed": true
 }
 ```
 
-**响应：**
+**成功响应：** `HTTP 200`
 ```json
 {
   "code": 200,
-  "data": { "... 完整的 todo 对象 ..." }
+  "data": { "... 更新后的完整 Todo 对象 ..." }
+}
+```
+
+**失败响应：** `HTTP 404`
+```json
+{
+  "code": 404,
+  "message": "Todo 不存在",
+  "data": null
 }
 ```
 
 ---
 
-### 3.4 删除 Todo
+### 4.4 删除
 
 ```
 DELETE /todos/{id}
 ```
 
-**响应：**
+**成功响应：** `HTTP 200`
 ```json
 {
   "code": 200,
-  "message": "已删除"
+  "message": "已删除",
+  "data": null
 }
 ```
 
 ---
 
-### 3.5 批量操作（切换完成状态）
+### 4.5 批量操作
 
 ```
 PATCH /todos/batch
@@ -188,38 +249,46 @@ PATCH /todos/batch
 **请求：**
 ```json
 {
-  "ids": ["todo_1", "todo_2"],
+  "ids": ["todo_1", "todo_2", "todo_3"],
   "action": "complete"
 }
 ```
 
 | action | 说明 |
 |--------|------|
-| complete | 标记完成 |
-| uncomplete | 取消完成 |
-| delete | 批量删除 |
+| complete | 全部标记完成 |
+| uncomplete | 全部取消完成 |
+| delete | 全部删除 |
 
-**响应：**
+**响应（部分成功时逐条返回结果）：** `HTTP 200`
 ```json
 {
   "code": 200,
   "data": {
-    "affectedCount": 2
+    "results": [
+      { "id": "todo_1", "success": true },
+      { "id": "todo_2", "success": true },
+      { "id": "todo_3", "success": false, "message": "Todo 不存在" }
+    ],
+    "successCount": 2,
+    "failCount": 1
   }
 }
 ```
 
+> **规则：批量操作尽量执行到底，逐条汇报结果，不因为一条失败就全部回滚。**
+
 ---
 
-## 4. 用户模块
+## 5. 用户模块
 
-### 4.1 获取用户信息
+### 5.1 获取用户信息
 
 ```
 GET /user/profile
 ```
 
-**响应：**
+**成功响应：** `HTTP 200`
 ```json
 {
   "code": 200,
@@ -235,20 +304,17 @@ GET /user/profile
 
 ---
 
-## 5. TODO：待确认事项
+## 6. 前端对接指引（给 Codex）
 
-- [ ] Base URL 确认（部署到哪个服务器/域名）
-- [ ] 是否需要分页，还是简单全量返回
-- [ ] 优先级用数字还是枚举字符串
-- [ ] 是否需要"清单/分组"概念（不只一个 todo 列表）
-- [ ] 是否需要排序（按创建时间/优先级/截止日期）
-- [ ] 是否需要截止日期字段
-- [ ] 文件上传（todo 附件）要不要
-- [ ] 是否需要用户注册/手机号绑定
+1. 在 `miniprogram/utils/api.js` 封装一个 `request()` 函数，自动拼接 Base URL 和 Authorization
+2. 本地开发时 Base URL 指向 `http://localhost:5000/api/v1`
+3. 真机调试和正式部署时，修改 `app.js` 里的全局 baseUrl 即可
+4. 接口文档里所有示例都是 `data` 里的内容，解包时取 `response.data` 即可
 
 ---
 
-> **双方确认后，此文档即为开发契约。修改需两方同步。**
+> **双方已确认，此文档即为开发契约 v0.2。**
 > 
-> 前端（Codex）：读取此文档后按接口格式发请求、解析响应
-> 后端（Claude）：实现这些接口，返回文档约定的格式
+> 前端（Codex）：`miniapp-frontend` 分支
+> 后端（Claude）：`aspnet-backend` 分支
+> 文档（用户）：`project-docs` 分支
