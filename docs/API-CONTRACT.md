@@ -260,18 +260,20 @@ PATCH /todos/batch
 | uncomplete | 全部取消完成 |
 | delete | 全部删除 |
 
-**响应（部分成功时逐条返回结果）：** `HTTP 200`
+**响应（逐条返回结果，部分失败不影响其他）：** `HTTP 200`
 ```json
 {
   "code": 200,
+  "message": "success",
   "data": {
-    "results": [
-      { "id": "todo_1", "success": true },
-      { "id": "todo_2", "success": true },
-      { "id": "todo_3", "success": false, "message": "Todo 不存在" }
-    ],
+    "total": 3,
     "successCount": 2,
-    "failCount": 1
+    "failedCount": 1,
+    "results": [
+      { "id": "todo_1", "success": true, "message": "已完成" },
+      { "id": "todo_2", "success": true, "message": "已完成" },
+      { "id": "todo_404", "success": false, "message": "Todo 不存在" }
+    ]
   }
 }
 ```
