@@ -62,6 +62,12 @@ public class AuthController : ControllerBase
         var appId = _config["Wechat:AppId"] ?? "";
         var appSecret = _config["Wechat:AppSecret"] ?? "";
 
+        // 临时日志：打印 AppId 前几位 + 后几位（不打印完整 Secret）
+        var appIdPreview = appId.Length > 6
+            ? $"{appId[..3]}...{appId[^3..]}"
+            : appId;
+        Console.WriteLine($"[WechatLogin] AppId={appIdPreview}, Code={dto.Code[..Math.Min(8, dto.Code.Length)]}...");
+
         string openId;
         try
         {
