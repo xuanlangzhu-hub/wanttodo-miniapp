@@ -108,7 +108,7 @@ public class AuthController : ControllerBase
         var client = _http.CreateClient();
         var response = await client.GetFromJsonAsync<WechatSessionResponse>(url);
 
-        if (response == null || !string.IsNullOrEmpty(response.ErrCode))
+        if (response == null || (response.ErrCode.HasValue && response.ErrCode.Value != 0))
             throw new Exception(response?.ErrMsg ?? "微信接口无响应");
 
         return response.OpenId ?? "";
@@ -134,9 +134,18 @@ public class AuthController : ControllerBase
 // 微信 code2Session 响应
 public class WechatSessionResponse
 {
+    [System.Text.Json.Serialization.JsonPropertyName("openid")]
     public string? OpenId { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("session_key")]
     public string? SessionKey { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("unionid")]
     public string? UnionId { get; set; }
-    public string? ErrCode { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("errcode")]
+    public int? ErrCode { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("errmsg")]
     public string? ErrMsg { get; set; }
 }
