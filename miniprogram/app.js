@@ -1,7 +1,9 @@
+const config = require("./config");
+
 App({
   onLaunch: function () {
     this.globalData = {
-      baseUrl: "http://localhost:5000/api/v1",
+      baseUrl: config.baseUrl,
       token: wx.getStorageSync("token") || "",
       userInfo: wx.getStorageSync("userInfo") || null,
     };
