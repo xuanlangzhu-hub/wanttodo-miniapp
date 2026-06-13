@@ -1,6 +1,38 @@
-@WantTodo.Api_HostAddress = http://localhost:5093
+@HostAddress = http://localhost:5000
 
-GET {{WantTodo.Api_HostAddress}}/weatherforecast/
+### 开发测试 Token
+GET {{HostAddress}}/api/v1/auth/dev-token
 Accept: application/json
 
-###
+### 获取 Todo 列表（替换 Token）
+GET {{HostAddress}}/api/v1/todos
+Authorization: Bearer <你的Token>
+Accept: application/json
+
+### 创建 Todo
+POST {{HostAddress}}/api/v1/todos
+Authorization: Bearer <你的Token>
+Content-Type: application/json
+
+{
+  "title": "测试任务",
+  "description": "这是一个测试",
+  "priority": 1
+}
+
+### 更新 Todo
+PATCH {{HostAddress}}/api/v1/todos/{id}
+Authorization: Bearer <你的Token>
+Content-Type: application/json
+
+{
+  "completed": true
+}
+
+### 删除 Todo
+DELETE {{HostAddress}}/api/v1/todos/{id}
+Authorization: Bearer <你的Token>
+
+### 获取用户信息
+GET {{HostAddress}}/api/v1/user/profile
+Authorization: Bearer <你的Token>
