@@ -11,7 +11,9 @@ public class Todo
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // 外键
+    // 外键（不序列化到 API 响应）
+    [System.Text.Json.Serialization.JsonIgnore]
     public string UserId { get; set; } = string.Empty;
+    [System.Text.Json.Serialization.JsonIgnore]
     public User? User { get; set; }
 }

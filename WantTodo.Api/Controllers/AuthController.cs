@@ -25,6 +25,32 @@ public class AuthController : ControllerBase
         _http = http;
     }
 
+    // ── GET /api/v1/auth/dev-token（仅开发环境）──
+    [HttpGet("dev-token")]
+    public ActionResult<ApiResponse<LoginResultDto>> DevToken()
+    {
+        if (!_config.GetValue<bool>("DevMode"))
+            return NotFound();
+
+        var userId = "test_user_01";
+        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
+        var expiresIn = 7200;
+        var token = GenerateJwt(userId, jwtKey, expiresIn);
+
+        var result = new LoginResultDto
+        {
+            Token = token,
+            ExpiresIn = expiresIn,
+            UserInfo = new UserInfoDto
+            {
+                UserId = userId,
+                Nickname = "测试用户",
+                AvatarUrl = ""
+            }
+        };
+        return Ok(ApiResponse<LoginResultDto>.Ok(result));
+    }
+
     // ── POST /api/v1/auth/wechat-login ──
     [HttpPost("wechat-login")]
     public async Task<ActionResult<ApiResponse<LoginResultDto>>> WechatLogin(WechatLoginDto dto)
