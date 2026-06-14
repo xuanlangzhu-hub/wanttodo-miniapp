@@ -8,5 +8,5 @@ public class User
     public string AvatarUrl { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public ICollection<Todo> Todos { get; set; } = new List<Todo>();
+    public ICollection<KnowledgeCard> Cards { get; set; } = new List<KnowledgeCard>();
 }

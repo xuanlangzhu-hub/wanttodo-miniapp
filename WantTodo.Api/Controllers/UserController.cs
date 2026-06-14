@@ -24,7 +24,7 @@ public class UserController : ControllerBase
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetProfile()
     {
         var user = await _db.Users
-            .Include(u => u.Todos)
+            .Include(u => u.Cards)
             .FirstOrDefaultAsync(u => u.Id == UserId);
 
         if (user == null)
@@ -35,8 +35,9 @@ public class UserController : ControllerBase
             UserId = user.Id,
             Nickname = user.Nickname,
             AvatarUrl = user.AvatarUrl,
-            TodoCount = user.Todos.Count,
-            CompletedCount = user.Todos.Count(t => t.Completed)
+            CardCount = user.Cards.Count,
+            TodoCount = user.Cards.Count(c => c.Status == "todo"),
+            DoneCount = user.Cards.Count(c => c.Status == "done")
         };
 
         return Ok(ApiResponse<UserProfileDto>.Ok(profile));

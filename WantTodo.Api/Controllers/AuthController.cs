@@ -25,6 +25,32 @@ public class AuthController : ControllerBase
         _http = http;
     }
 
+    // ── GET /api/v1/auth/dev-token（仅开发环境）──
+    [HttpGet("dev-token")]
+    public ActionResult<ApiResponse<LoginResultDto>> DevToken()
+    {
+        if (!_config.GetValue<bool>("DevMode"))
+            return NotFound();
+
+        var userId = "test_user_01";
+        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
+        var expiresIn = 7200;
+        var token = GenerateJwt(userId, jwtKey, expiresIn);
+
+        var result = new LoginResultDto
+        {
+            Token = token,
+            ExpiresIn = expiresIn,
+            UserInfo = new UserInfoDto
+            {
+                UserId = userId,
+                Nickname = "测试用户",
+                AvatarUrl = ""
+            }
+        };
+        return Ok(ApiResponse<LoginResultDto>.Ok(result));
+    }
+
     // ── POST /api/v1/auth/wechat-login ──
     [HttpPost("wechat-login")]
     public async Task<ActionResult<ApiResponse<LoginResultDto>>> WechatLogin(WechatLoginDto dto)
@@ -35,6 +61,12 @@ public class AuthController : ControllerBase
         // 调用微信接口，用 code 换 openId
         var appId = _config["Wechat:AppId"] ?? "";
         var appSecret = _config["Wechat:AppSecret"] ?? "";
+
+        // 临时日志：打印 AppId 前几位 + 后几位（不打印完整 Secret）
+        var appIdPreview = appId.Length > 6
+            ? $"{appId[..3]}...{appId[^3..]}"
+            : appId;
+        Console.WriteLine($"[WechatLogin] AppId={appIdPreview}, Code={dto.Code[..Math.Min(8, dto.Code.Length)]}...");
 
         string openId;
         try
@@ -82,7 +114,7 @@ public class AuthController : ControllerBase
         var client = _http.CreateClient();
         var response = await client.GetFromJsonAsync<WechatSessionResponse>(url);
 
-        if (response == null || !string.IsNullOrEmpty(response.ErrCode))
+        if (response == null || (response.ErrCode.HasValue && response.ErrCode.Value != 0))
             throw new Exception(response?.ErrMsg ?? "微信接口无响应");
 
         return response.OpenId ?? "";
@@ -108,9 +140,18 @@ public class AuthController : ControllerBase
 // 微信 code2Session 响应
 public class WechatSessionResponse
 {
+    [System.Text.Json.Serialization.JsonPropertyName("openid")]
     public string? OpenId { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("session_key")]
     public string? SessionKey { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("unionid")]
     public string? UnionId { get; set; }
-    public string? ErrCode { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("errcode")]
+    public int? ErrCode { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("errmsg")]
     public string? ErrMsg { get; set; }
 }

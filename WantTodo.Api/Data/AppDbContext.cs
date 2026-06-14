@@ -7,21 +7,23 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<Todo> Todos => Set<Todo>();
+    public DbSet<KnowledgeCard> Cards => Set<KnowledgeCard>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Todo>(entity =>
+        modelBuilder.Entity<KnowledgeCard>(entity =>
         {
-            entity.HasKey(t => t.Id);
-            entity.Property(t => t.Title).HasMaxLength(200).IsRequired();
-            entity.Property(t => t.Description).HasMaxLength(1000).HasDefaultValue("");
-            entity.Property(t => t.Completed).HasDefaultValue(false);
-            entity.Property(t => t.Priority).HasDefaultValue(2);
-            entity.HasOne(t => t.User)
-                  .WithMany(u => u.Todos)
-                  .HasForeignKey(t => t.UserId);
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Title).HasMaxLength(200).IsRequired();
+            entity.Property(c => c.SourceText).HasMaxLength(5000).HasDefaultValue("");
+            entity.Property(c => c.Summary).HasMaxLength(2000).HasDefaultValue("");
+            entity.Property(c => c.SourceUrl).HasMaxLength(1000).HasDefaultValue("");
+            entity.Property(c => c.TagsJson).HasMaxLength(2000).HasDefaultValue("[]");
+            entity.Property(c => c.Status).HasMaxLength(20).HasDefaultValue("todo");
+            entity.HasOne(c => c.User)
+                  .WithMany(u => u.Cards)
+                  .HasForeignKey(c => c.UserId);
         });
 
         modelBuilder.Entity<User>(entity =>
