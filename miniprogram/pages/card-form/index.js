@@ -27,7 +27,7 @@ Page({
     },
   },
 
-  onLoad(options) {
+  onLoad(options = {}) {
     if (options.id) {
       this.setData({
         id: options.id,

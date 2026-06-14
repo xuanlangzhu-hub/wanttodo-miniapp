@@ -18,7 +18,7 @@
       value="{{form.sourceText}}"
       data-field="sourceText"
       bindinput="onInput"
-    />
+    ></textarea>
   </view>
 
   <view class="field">
@@ -29,7 +29,7 @@
       value="{{form.summary}}"
       data-field="summary"
       bindinput="onInput"
-    />
+    ></textarea>
   </view>
 
   <view class="field">
