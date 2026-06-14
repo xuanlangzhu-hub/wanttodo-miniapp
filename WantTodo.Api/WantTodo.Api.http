@@ -4,33 +4,44 @@
 GET {{HostAddress}}/api/v1/auth/dev-token
 Accept: application/json
 
-### 获取 Todo 列表（替换 Token）
-GET {{HostAddress}}/api/v1/todos
+### 获取卡片列表
+GET {{HostAddress}}/api/v1/cards
 Authorization: Bearer <你的Token>
 Accept: application/json
 
-### 创建 Todo
-POST {{HostAddress}}/api/v1/todos
+### 获取卡片列表（按状态筛选）
+GET {{HostAddress}}/api/v1/cards?status=todo&sort=updatedAt&order=desc
+Authorization: Bearer <你的Token>
+
+### 创建卡片
+POST {{HostAddress}}/api/v1/cards
 Authorization: Bearer <你的Token>
 Content-Type: application/json
 
 {
-  "title": "测试任务",
-  "description": "这是一个测试",
-  "priority": 1
+  "title": "测试知识卡片",
+  "sourceText": "这是一段原文摘录",
+  "summary": "这是摘要",
+  "sourceUrl": "https://example.com",
+  "tags": ["AI", "Python"]
 }
 
-### 更新 Todo
-PATCH {{HostAddress}}/api/v1/todos/{id}
+### 更新卡片
+PATCH {{HostAddress}}/api/v1/cards/{id}
 Authorization: Bearer <你的Token>
 Content-Type: application/json
 
 {
-  "completed": true
+  "summary": "更新后的摘要",
+  "status": "done"
 }
 
-### 删除 Todo
-DELETE {{HostAddress}}/api/v1/todos/{id}
+### 归档卡片
+PATCH {{HostAddress}}/api/v1/cards/{id}/archive
+Authorization: Bearer <你的Token>
+
+### 删除卡片
+DELETE {{HostAddress}}/api/v1/cards/{id}
 Authorization: Bearer <你的Token>
 
 ### 获取用户信息
