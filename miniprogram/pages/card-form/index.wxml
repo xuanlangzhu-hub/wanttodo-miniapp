@@ -1,0 +1,73 @@
+<view class="page">
+  <view class="field">
+    <view class="label">标题</view>
+    <input
+      class="input"
+      placeholder="写一个便于查找的标题"
+      value="{{form.title}}"
+      data-field="title"
+      bindinput="onInput"
+    />
+  </view>
+
+  <view class="field">
+    <view class="label">原文 / 摘录</view>
+    <textarea
+      class="textarea large"
+      placeholder="粘贴需要整理的材料"
+      value="{{form.sourceText}}"
+      data-field="sourceText"
+      bindinput="onInput"
+    ></textarea>
+  </view>
+
+  <view class="field">
+    <view class="label">摘要</view>
+    <textarea
+      class="textarea"
+      placeholder="整理后的简短摘要"
+      value="{{form.summary}}"
+      data-field="summary"
+      bindinput="onInput"
+    ></textarea>
+  </view>
+
+  <view class="field">
+    <view class="label">来源链接</view>
+    <input
+      class="input"
+      placeholder="可选"
+      value="{{form.sourceUrl}}"
+      data-field="sourceUrl"
+      bindinput="onInput"
+    />
+  </view>
+
+  <view class="field">
+    <view class="label">标签</view>
+    <input
+      class="input"
+      placeholder="用空格或逗号分隔"
+      value="{{form.tagsText}}"
+      data-field="tagsText"
+      bindinput="onInput"
+    />
+  </view>
+
+  <view class="field">
+    <view class="label">状态</view>
+    <view class="status-row">
+      <view
+        wx:for="{{statusOptions}}"
+        wx:key="value"
+        class="status-option {{form.status === item.value ? 'active' : ''}}"
+        data-status="{{item.value}}"
+        bindtap="onStatusTap"
+      >
+        {{item.label}}
+      </view>
+    </view>
+  </view>
+
+  <button class="save-button" bindtap="onSaveTap">保存</button>
+</view>

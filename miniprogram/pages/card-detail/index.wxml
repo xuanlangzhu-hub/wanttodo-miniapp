@@ -1,0 +1,39 @@
+<view class="page" wx:if="{{card}}">
+  <view class="head">
+    <view class="status {{card.status}}">{{statusText}}</view>
+    <view class="title">{{card.title}}</view>
+  </view>
+
+  <view class="section" wx:if="{{card.summary}}">
+    <view class="label">摘要</view>
+    <view class="content">{{card.summary}}</view>
+  </view>
+
+  <view class="section" wx:if="{{card.sourceText}}">
+    <view class="label">原文 / 摘录</view>
+    <view class="content pre">{{card.sourceText}}</view>
+  </view>
+
+  <view class="section" wx:if="{{card.sourceUrl}}">
+    <view class="label">来源链接</view>
+    <view class="content link">{{card.sourceUrl}}</view>
+  </view>
+
+  <view class="section" wx:if="{{card.tags && card.tags.length}}">
+    <view class="label">标签</view>
+    <view class="tag-row">
+      <text wx:for="{{card.tags}}" wx:key="*this" class="tag">{{item}}</text>
+    </view>
+  </view>
+
+  <view class="meta">
+    <view>创建时间：{{card.createdAtText}}</view>
+    <view>更新时间：{{card.updatedAtText}}</view>
+  </view>
+
+  <view class="actions">
+    <button class="primary" bindtap="onEditTap">编辑</button>
+    <button wx:if="{{card.status !== 'archived'}}" class="secondary" bindtap="onArchiveTap">归档</button>
+    <button class="danger" bindtap="onDeleteTap">删除</button>
+  </view>
+</view>

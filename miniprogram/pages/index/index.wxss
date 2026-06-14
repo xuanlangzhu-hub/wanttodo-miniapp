@@ -1,0 +1,280 @@
+page {
+  min-height: 100vh;
+  background: #f4f6fa;
+}
+
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 44rpx 32rpx 72rpx;
+}
+
+.header,
+.quick-panel,
+.card-top,
+.card-footer {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.header {
+  margin-bottom: 32rpx;
+}
+
+.eyebrow {
+  color: #697386;
+  font-size: 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.title {
+  color: #182235;
+  font-size: 44rpx;
+  font-weight: 600;
+}
+
+.login-button,
+.primary-action,
+.text-button {
+  align-items: center;
+  border-radius: 8rpx;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+.login-button {
+  background: #182235;
+  color: #ffffff;
+  font-size: 26rpx;
+  height: 64rpx;
+  padding: 0 28rpx;
+}
+
+.avatar {
+  align-items: center;
+  background: #dce5f2;
+  border-radius: 50%;
+  color: #182235;
+  display: flex;
+  font-size: 28rpx;
+  font-weight: 600;
+  height: 72rpx;
+  justify-content: center;
+  overflow: hidden;
+  width: 72rpx;
+}
+
+.avatar image {
+  height: 100%;
+  width: 100%;
+}
+
+.quick-panel {
+  background: #ffffff;
+  border: 1rpx solid #e2e8f1;
+  border-radius: 8rpx;
+  gap: 18rpx;
+  padding: 18rpx;
+}
+
+.primary-action {
+  background: #2f6fed;
+  color: #ffffff;
+  flex: 1;
+  font-size: 28rpx;
+  height: 72rpx;
+}
+
+.metric {
+  min-width: 112rpx;
+  text-align: center;
+}
+
+.metric-value {
+  color: #182235;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.metric-label {
+  color: #697386;
+  font-size: 22rpx;
+  margin-top: 4rpx;
+}
+
+.section {
+  margin-top: 32rpx;
+}
+
+.section-title {
+  color: #182235;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.mini-empty {
+  background: #ffffff;
+  border: 1rpx dashed #cfd8e6;
+  border-radius: 8rpx;
+  color: #7b8496;
+  font-size: 26rpx;
+  padding: 24rpx;
+  text-align: center;
+}
+
+.compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.compact-item {
+  background: #ffffff;
+  border: 1rpx solid #e2e8f1;
+  border-radius: 8rpx;
+  color: #30394d;
+  font-size: 28rpx;
+  padding: 22rpx 24rpx;
+}
+
+.tabs {
+  background: #e9eef6;
+  border-radius: 8rpx;
+  display: grid;
+  gap: 6rpx;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 6rpx;
+}
+
+.tab {
+  border-radius: 6rpx;
+  color: #697386;
+  font-size: 24rpx;
+  line-height: 56rpx;
+  text-align: center;
+}
+
+.tab.active {
+  background: #ffffff;
+  color: #182235;
+  font-weight: 600;
+}
+
+.summary {
+  color: #697386;
+  font-size: 24rpx;
+  margin-top: 16rpx;
+}
+
+.empty {
+  align-items: center;
+  background: #ffffff;
+  border: 1rpx dashed #cfd8e6;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24rpx;
+  padding: 64rpx 32rpx;
+}
+
+.empty-title {
+  color: #182235;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.empty-text {
+  color: #697386;
+  font-size: 26rpx;
+  margin-top: 12rpx;
+  text-align: center;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.card-item {
+  background: #ffffff;
+  border: 1rpx solid #e2e8f1;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+  padding: 24rpx;
+}
+
+.card-title {
+  color: #182235;
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.status {
+  border-radius: 999rpx;
+  color: #526070;
+  flex-shrink: 0;
+  font-size: 22rpx;
+  margin-left: 16rpx;
+  padding: 6rpx 14rpx;
+}
+
+.status.todo {
+  background: #fff4de;
+  color: #9a5b00;
+}
+
+.status.done {
+  background: #e4f7ed;
+  color: #16794f;
+}
+
+.status.archived {
+  background: #eef1f5;
+  color: #697386;
+}
+
+.card-summary {
+  color: #526070;
+  font-size: 26rpx;
+  line-height: 1.45;
+  margin-top: 14rpx;
+  word-break: break-all;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 16rpx;
+}
+
+.tag {
+  background: #edf3ff;
+  border-radius: 6rpx;
+  color: #2f6fed;
+  font-size: 22rpx;
+  padding: 6rpx 10rpx;
+}
+
+.card-footer {
+  color: #8a94a6;
+  font-size: 22rpx;
+  margin-top: 18rpx;
+}
+
+.text-button {
+  background: #f3f5f8;
+  color: #526070;
+  font-size: 24rpx;
+  height: 48rpx;
+  padding: 0 18rpx;
+}
