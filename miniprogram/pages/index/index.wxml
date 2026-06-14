@@ -1,8 +1,8 @@
 <view class="page">
   <view class="header">
     <view>
-      <view class="eyebrow">WantTodo</view>
-      <view class="title">今天要做什么？</view>
+      <view class="eyebrow">学习记录</view>
+      <view class="title">我的工作台</view>
     </view>
     <button wx:if="{{!loggedIn}}" class="login-button" bindtap="onLoginTap">登录</button>
     <view wx:else class="avatar">
@@ -11,56 +11,82 @@
     </view>
   </view>
 
-  <view class="composer">
-    <input
-      class="todo-input"
-      placeholder="添加一个待办"
-      value="{{newTitle}}"
-      confirm-type="done"
-      bindinput="onInputTitle"
-      bindconfirm="onAddTodo"
-    />
-    <button class="add-button" bindtap="onAddTodo">添加</button>
-  </view>
-
-  <view class="tabs">
-    <view
-      wx:for="{{statusTabs}}"
-      wx:key="value"
-      class="tab {{status === item.value ? 'active' : ''}}"
-      data-status="{{item.value}}"
-      bindtap="onTabTap"
-    >
-      {{item.label}}
+  <view class="quick-panel">
+    <button class="primary-action" bindtap="onCreateTap">新建卡片</button>
+    <view class="metric">
+      <view class="metric-value">{{pendingCards.length}}</view>
+      <view class="metric-label">待整理</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{recentCards.length}}</view>
+      <view class="metric-label">最近整理</view>
     </view>
   </view>
 
-  <view class="summary">共 {{total}} 条</view>
-
-  <view wx:if="{{!loading && todos.length === 0}}" class="empty">
-    <view class="empty-title">还没有待办</view>
-    <view class="empty-text">先添加一条，后端连通后会显示在这里。</view>
+  <view class="section">
+    <view class="section-title">待整理</view>
+    <view wx:if="{{pendingCards.length === 0}}" class="mini-empty">暂无待整理卡片</view>
+    <view wx:else class="compact-list">
+      <view
+        wx:for="{{pendingCards}}"
+        wx:key="id"
+        class="compact-item"
+        data-id="{{item.id}}"
+        bindtap="onCardTap"
+      >
+        <text>{{item.title}}</text>
+      </view>
+    </view>
   </view>
 
-  <view class="todo-list">
-    <view wx:for="{{todos}}" wx:key="id" class="todo-item {{item.completed ? 'done' : ''}}">
+  <view class="section">
+    <view class="section-title">内容池</view>
+    <view class="tabs">
       <view
-        class="check"
-        data-id="{{item.id}}"
-        data-completed="{{item.completed}}"
-        bindtap="onToggleTodo"
+        wx:for="{{statusTabs}}"
+        wx:key="value"
+        class="tab {{status === item.value ? 'active' : ''}}"
+        data-status="{{item.value}}"
+        bindtap="onTabTap"
       >
-        <text wx:if="{{item.completed}}">✓</text>
+        {{item.label}}
       </view>
-      <view class="todo-main">
-        <view class="todo-title">{{item.title}}</view>
-        <view wx:if="{{item.description}}" class="todo-desc">{{item.description}}</view>
-        <view class="todo-meta">
-          <text>优先级 {{item.priority}}</text>
-          <text wx:if="{{item.dueDate}}">截止 {{item.dueDate}}</text>
-        </view>
+    </view>
+    <view class="summary">共 {{total}} 张</view>
+  </view>
+
+  <view wx:if="{{!loggedIn}}" class="empty">
+    <view class="empty-title">登录后开始整理</view>
+    <view class="empty-text">把材料整理成自己的知识卡片。</view>
+  </view>
+
+  <view wx:elif="{{!loading && cards.length === 0}}" class="empty">
+    <view class="empty-title">还没有卡片</view>
+    <view class="empty-text">先新建一张，之后会显示在内容池。</view>
+  </view>
+
+  <view class="card-list">
+    <view wx:for="{{cards}}" wx:key="id" class="card-item" data-id="{{item.id}}" bindtap="onCardTap">
+      <view class="card-top">
+        <view class="card-title">{{item.title}}</view>
+        <view class="status {{item.status}}">{{item.statusText}}</view>
       </view>
-      <button class="delete-button" data-id="{{item.id}}" bindtap="onDeleteTodo">删除</button>
+      <view wx:if="{{item.summary}}" class="card-summary">{{item.summary}}</view>
+      <view wx:elif="{{item.sourceText}}" class="card-summary">{{item.sourceText}}</view>
+      <view class="tag-row" wx:if="{{item.tags && item.tags.length}}">
+        <text wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <view class="card-footer">
+        <text>{{item.updatedAtText}}</text>
+        <button
+          wx:if="{{item.status !== 'archived'}}"
+          class="text-button"
+          catchtap="onArchiveTap"
+          data-id="{{item.id}}"
+        >
+          归档
+        </button>
+      </view>
     </view>
   </view>
 </view>

@@ -1,13 +1,14 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/example/index"
+    "pages/card-form/index",
+    "pages/card-detail/index"
   ],
   "window": {
     "backgroundColor": "#F5F7FB",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#F5F7FB",
-    "navigationBarTitleText": "WantTodo",
+    "navigationBarTitleText": "AI知识卡片",
     "navigationBarTextStyle": "black"
   },
   "sitemapLocation": "sitemap.json",

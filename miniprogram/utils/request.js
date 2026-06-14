@@ -8,7 +8,9 @@ const getAppSafe = () => {
 
 const buildUrl = (path, query) => {
   const app = getAppSafe();
-  const baseUrl = app?.globalData?.baseUrl || "http://localhost:5000/api/v1";
+  const baseUrl = app && app.globalData && app.globalData.baseUrl
+    ? app.globalData.baseUrl
+    : "http://localhost:5000/api/v1";
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const queryEntries = Object.keys(query || {}).filter((key) => {
     const value = query[key];
@@ -28,7 +30,9 @@ const buildUrl = (path, query) => {
 
 const request = ({ path, method = "GET", data, query, showLoading = false }) => {
   const app = getAppSafe();
-  const token = app?.globalData?.token || wx.getStorageSync("token") || "";
+  const token = app && app.globalData && app.globalData.token
+    ? app.globalData.token
+    : wx.getStorageSync("token") || "";
 
   if (showLoading) {
     wx.showLoading({ title: "加载中" });
@@ -39,10 +43,14 @@ const request = ({ path, method = "GET", data, query, showLoading = false }) => 
       url: buildUrl(path, query),
       method,
       data,
-      header: {
-        "content-type": "application/json; charset=utf-8",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      header: token
+        ? {
+            "content-type": "application/json; charset=utf-8",
+            Authorization: `Bearer ${token}`,
+          }
+        : {
+            "content-type": "application/json; charset=utf-8",
+          },
       success(response) {
         const body = response.data || {};
         const ok = response.statusCode >= 200 && response.statusCode < 300;

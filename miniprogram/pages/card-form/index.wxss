@@ -1,0 +1,82 @@
+page {
+  min-height: 100vh;
+  background: #f4f6fa;
+}
+
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 32rpx 32rpx 72rpx;
+}
+
+.field {
+  margin-bottom: 26rpx;
+}
+
+.label {
+  color: #30394d;
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.input,
+.textarea {
+  background: #ffffff;
+  border: 1rpx solid #e2e8f1;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+  color: #182235;
+  font-size: 28rpx;
+  width: 100%;
+}
+
+.input {
+  height: 80rpx;
+  padding: 0 22rpx;
+}
+
+.textarea {
+  line-height: 1.45;
+  min-height: 160rpx;
+  padding: 20rpx 22rpx;
+}
+
+.textarea.large {
+  min-height: 260rpx;
+}
+
+.status-row {
+  background: #e9eef6;
+  border-radius: 8rpx;
+  display: grid;
+  gap: 6rpx;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 6rpx;
+}
+
+.status-option {
+  border-radius: 6rpx;
+  color: #697386;
+  font-size: 26rpx;
+  line-height: 64rpx;
+  text-align: center;
+}
+
+.status-option.active {
+  background: #ffffff;
+  color: #182235;
+  font-weight: 600;
+}
+
+.save-button {
+  align-items: center;
+  background: #2f6fed;
+  border-radius: 8rpx;
+  color: #ffffff;
+  display: flex;
+  font-size: 30rpx;
+  height: 88rpx;
+  justify-content: center;
+  margin: 34rpx 0 0;
+}
