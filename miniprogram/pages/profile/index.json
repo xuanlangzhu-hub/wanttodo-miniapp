@@ -1,6 +1,5 @@
 {
-  "navigationBarTitleText": "我的工作台",
-  "enablePullDownRefresh": true,
+  "navigationBarTitleText": "我的",
   "usingComponents": {
     "bottom-nav": "/components/bottom-nav/index"
   }

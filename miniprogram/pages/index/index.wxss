@@ -1,12 +1,12 @@
 page {
   min-height: 100vh;
-  background: #f4f6fa;
+  background: #0e0e12;
 }
 
 .page {
   box-sizing: border-box;
   min-height: 100vh;
-  padding: 44rpx 32rpx 72rpx;
+  padding: 44rpx 32rpx 190rpx;
 }
 
 .header,
@@ -23,13 +23,13 @@ page {
 }
 
 .eyebrow {
-  color: #697386;
+  color: #83839c;
   font-size: 24rpx;
   margin-bottom: 8rpx;
 }
 
 .title {
-  color: #182235;
+  color: #ffffff;
   font-size: 44rpx;
   font-weight: 600;
 }
@@ -45,7 +45,8 @@ page {
 }
 
 .login-button {
-  background: #182235;
+  background: linear-gradient(180deg, #ffa699 0%, #ff7966 100%);
+  box-shadow: 0 12rpx 28rpx rgba(255, 121, 102, 0.32);
   color: #ffffff;
   font-size: 26rpx;
   height: 64rpx;
@@ -54,9 +55,10 @@ page {
 
 .avatar {
   align-items: center;
-  background: #dce5f2;
+  background: #353542;
+  border: 1rpx solid #4e4e61;
   border-radius: 50%;
-  color: #182235;
+  color: #ffffff;
   display: flex;
   font-size: 28rpx;
   font-weight: 600;
@@ -72,15 +74,16 @@ page {
 }
 
 .quick-panel {
-  background: #ffffff;
-  border: 1rpx solid #e2e8f1;
+  background: #1c1c23;
+  border: 1rpx solid #353542;
   border-radius: 8rpx;
   gap: 18rpx;
   padding: 18rpx;
 }
 
 .primary-action {
-  background: #2f6fed;
+  background: linear-gradient(180deg, #ffa699 0%, #ff7966 100%);
+  box-shadow: 0 12rpx 28rpx rgba(255, 121, 102, 0.28);
   color: #ffffff;
   flex: 1;
   font-size: 28rpx;
@@ -93,13 +96,13 @@ page {
 }
 
 .metric-value {
-  color: #182235;
+  color: #ffffff;
   font-size: 34rpx;
   font-weight: 600;
 }
 
 .metric-label {
-  color: #697386;
+  color: #a2a2b5;
   font-size: 22rpx;
   margin-top: 4rpx;
 }
@@ -109,17 +112,17 @@ page {
 }
 
 .section-title {
-  color: #182235;
+  color: #ffffff;
   font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 16rpx;
 }
 
 .mini-empty {
-  background: #ffffff;
-  border: 1rpx dashed #cfd8e6;
+  background: #1c1c23;
+  border: 1rpx dashed #4e4e61;
   border-radius: 8rpx;
-  color: #7b8496;
+  color: #a2a2b5;
   font-size: 26rpx;
   padding: 24rpx;
   text-align: center;
@@ -132,16 +135,17 @@ page {
 }
 
 .compact-item {
-  background: #ffffff;
-  border: 1rpx solid #e2e8f1;
+  background: #1c1c23;
+  border: 1rpx solid #353542;
   border-radius: 8rpx;
-  color: #30394d;
+  color: #e0e0e6;
   font-size: 28rpx;
   padding: 22rpx 24rpx;
 }
 
 .tabs {
-  background: #e9eef6;
+  background: #1c1c23;
+  border: 1rpx solid #353542;
   border-radius: 8rpx;
   display: grid;
   gap: 6rpx;
@@ -151,28 +155,28 @@ page {
 
 .tab {
   border-radius: 6rpx;
-  color: #697386;
+  color: #83839c;
   font-size: 24rpx;
   line-height: 56rpx;
   text-align: center;
 }
 
 .tab.active {
-  background: #ffffff;
-  color: #182235;
+  background: #353542;
+  color: #ffffff;
   font-weight: 600;
 }
 
 .summary {
-  color: #697386;
+  color: #83839c;
   font-size: 24rpx;
   margin-top: 16rpx;
 }
 
 .empty {
   align-items: center;
-  background: #ffffff;
-  border: 1rpx dashed #cfd8e6;
+  background: #1c1c23;
+  border: 1rpx dashed #4e4e61;
   border-radius: 8rpx;
   box-sizing: border-box;
   display: flex;
@@ -182,13 +186,13 @@ page {
 }
 
 .empty-title {
-  color: #182235;
+  color: #ffffff;
   font-size: 32rpx;
   font-weight: 600;
 }
 
 .empty-text {
-  color: #697386;
+  color: #a2a2b5;
   font-size: 26rpx;
   margin-top: 12rpx;
   text-align: center;
@@ -202,15 +206,15 @@ page {
 }
 
 .card-item {
-  background: #ffffff;
-  border: 1rpx solid #e2e8f1;
+  background: #1c1c23;
+  border: 1rpx solid #353542;
   border-radius: 8rpx;
   box-sizing: border-box;
   padding: 24rpx;
 }
 
 .card-title {
-  color: #182235;
+  color: #ffffff;
   flex: 1;
   font-size: 30rpx;
   font-weight: 600;
@@ -220,7 +224,7 @@ page {
 
 .status {
   border-radius: 999rpx;
-  color: #526070;
+  color: #c1c1cd;
   flex-shrink: 0;
   font-size: 22rpx;
   margin-left: 16rpx;
@@ -228,22 +232,22 @@ page {
 }
 
 .status.todo {
-  background: #fff4de;
-  color: #9a5b00;
+  background: rgba(146, 78, 255, 0.18);
+  color: #c9a7ff;
 }
 
 .status.done {
-  background: #e4f7ed;
-  color: #16794f;
+  background: rgba(46, 235, 210, 0.14);
+  color: #63f0df;
 }
 
 .status.archived {
-  background: #eef1f5;
-  color: #697386;
+  background: #353542;
+  color: #a2a2b5;
 }
 
 .card-summary {
-  color: #526070;
+  color: #c1c1cd;
   font-size: 26rpx;
   line-height: 1.45;
   margin-top: 14rpx;
@@ -258,23 +262,40 @@ page {
 }
 
 .tag {
-  background: #edf3ff;
+  background: rgba(94, 0, 245, 0.22);
   border-radius: 6rpx;
-  color: #2f6fed;
+  color: #c9a7ff;
   font-size: 22rpx;
   padding: 6rpx 10rpx;
 }
 
 .card-footer {
-  color: #8a94a6;
+  align-items: center;
+  color: #83839c;
   font-size: 22rpx;
   margin-top: 18rpx;
 }
 
+.card-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 10rpx;
+}
+
 .text-button {
-  background: #f3f5f8;
-  color: #526070;
+  background: #353542;
+  color: #e0e0e6;
   font-size: 24rpx;
   height: 48rpx;
   padding: 0 18rpx;
+}
+
+.text-button.primary-link {
+  background: rgba(255, 121, 102, 0.18);
+  color: #ff9a86;
+}
+
+.text-button.danger-link {
+  background: rgba(255, 121, 102, 0.12);
+  color: #ff7966;
 }
