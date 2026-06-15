@@ -78,15 +78,50 @@
       </view>
       <view class="card-footer">
         <text>{{item.updatedAtText}}</text>
-        <button
-          wx:if="{{item.status !== 'archived'}}"
-          class="text-button"
-          catchtap="onArchiveTap"
-          data-id="{{item.id}}"
-        >
-          归档
-        </button>
+        <view class="card-actions">
+          <button
+            wx:if="{{item.status === 'todo'}}"
+            class="text-button primary-link"
+            catchtap="onOrganizeTap"
+            data-id="{{item.id}}"
+          >
+            去整理
+          </button>
+          <button
+            wx:elif="{{item.status === 'archived'}}"
+            class="text-button"
+            catchtap="onRestoreTap"
+            data-id="{{item.id}}"
+          >
+            恢复整理
+          </button>
+          <button
+            wx:else
+            class="text-button"
+            catchtap="onOrganizeTap"
+            data-id="{{item.id}}"
+          >
+            编辑
+          </button>
+          <button
+            wx:if="{{item.status !== 'archived'}}"
+            class="text-button"
+            catchtap="onArchiveTap"
+            data-id="{{item.id}}"
+          >
+            归档
+          </button>
+          <button
+            wx:if="{{item.status === 'archived'}}"
+            class="text-button danger-link"
+            catchtap="onDeleteTap"
+            data-id="{{item.id}}"
+          >
+            删除
+          </button>
+        </view>
       </view>
     </view>
   </view>
+  <bottom-nav active="home"></bottom-nav>
 </view>

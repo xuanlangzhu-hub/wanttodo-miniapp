@@ -44,10 +44,24 @@ Page({
     });
   },
 
+  onOrganizeTap() {
+    this.onEditTap();
+  },
+
   async onArchiveTap() {
     try {
       await cardApi.archiveCard(this.data.id);
       wx.showToast({ title: "已归档", icon: "success" });
+      this.loadCard();
+    } catch (error) {
+      this.showError(error);
+    }
+  },
+
+  async onRestoreTap() {
+    try {
+      await cardApi.updateCard(this.data.id, { status: "todo" });
+      wx.showToast({ title: "已恢复", icon: "success" });
       this.loadCard();
     } catch (error) {
       this.showError(error);

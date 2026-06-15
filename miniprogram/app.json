@@ -1,15 +1,18 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/content-pool/index",
+    "pages/pending/index",
+    "pages/profile/index",
     "pages/card-form/index",
     "pages/card-detail/index"
   ],
   "window": {
-    "backgroundColor": "#F5F7FB",
+    "backgroundColor": "#0E0E12",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F5F7FB",
+    "navigationBarBackgroundColor": "#0E0E12",
     "navigationBarTitleText": "AI知识卡片",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "white"
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents"

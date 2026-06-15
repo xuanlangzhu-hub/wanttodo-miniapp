@@ -104,6 +104,13 @@ Page({
     });
   },
 
+  onOrganizeTap(event) {
+    const { id } = event.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/pages/card-form/index?id=${id}`,
+    });
+  },
+
   onTabTap(event) {
     const status = event.currentTarget.dataset.status;
     if (status === this.data.status) {
@@ -123,6 +130,40 @@ Page({
     } catch (error) {
       this.showError(error);
     }
+  },
+
+  async onRestoreTap(event) {
+    const { id } = event.currentTarget.dataset;
+    try {
+      await cardApi.updateCard(id, { status: "todo" });
+      wx.showToast({ title: "已恢复", icon: "success" });
+      this.loadCards(false);
+    } catch (error) {
+      this.showError(error);
+    }
+  },
+
+  onDeleteTap(event) {
+    const { id } = event.currentTarget.dataset;
+    wx.showModal({
+      title: "删除卡片",
+      content: "确定删除这张卡片吗？",
+      confirmText: "删除",
+      confirmColor: "#d92d20",
+      success: async (result) => {
+        if (!result.confirm) {
+          return;
+        }
+
+        try {
+          await cardApi.deleteCard(id);
+          wx.showToast({ title: "已删除", icon: "success" });
+          this.loadCards(false);
+        } catch (error) {
+          this.showError(error);
+        }
+      },
+    });
   },
 
   async loadCards(showLoading = false) {

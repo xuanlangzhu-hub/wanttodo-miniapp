@@ -1,0 +1,54 @@
+.nav-shell {
+  bottom: calc(18rpx + env(safe-area-inset-bottom));
+  height: 180rpx;
+  left: 50%;
+  position: fixed;
+  transform: translateX(-50%);
+  width: 660rpx;
+  z-index: 80;
+}
+
+.nav-bg {
+  bottom: 0;
+  height: 152rpx;
+  left: 0;
+  position: absolute;
+  width: 660rpx;
+}
+
+.nav-items {
+  align-items: flex-end;
+  bottom: 28rpx;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr) 120rpx repeat(2, 1fr);
+  height: 76rpx;
+  left: 0;
+  position: absolute;
+  width: 660rpx;
+}
+
+.nav-item {
+  align-items: center;
+  display: flex;
+  height: 76rpx;
+  justify-content: center;
+}
+
+.nav-icon {
+  height: 48rpx;
+  width: 132rpx;
+}
+
+.nav-spacer {
+  height: 76rpx;
+}
+
+.nav-cta {
+  height: 196rpx;
+  left: 50%;
+  position: absolute;
+  top: 8rpx;
+  transform: translateX(-50%);
+  width: 196rpx;
+  z-index: 2;
+}

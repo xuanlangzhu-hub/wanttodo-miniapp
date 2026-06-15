@@ -1,6 +1,6 @@
 page {
   min-height: 100vh;
-  background: #f4f6fa;
+  background: #0e0e12;
 }
 
 .page {
@@ -14,7 +14,7 @@ page {
 }
 
 .label {
-  color: #30394d;
+  color: #e0e0e6;
   font-size: 26rpx;
   font-weight: 600;
   margin-bottom: 12rpx;
@@ -22,11 +22,11 @@ page {
 
 .input,
 .textarea {
-  background: #ffffff;
-  border: 1rpx solid #e2e8f1;
+  background: #1c1c23;
+  border: 1rpx solid #353542;
   border-radius: 8rpx;
   box-sizing: border-box;
-  color: #182235;
+  color: #ffffff;
   font-size: 28rpx;
   width: 100%;
 }
@@ -47,7 +47,8 @@ page {
 }
 
 .status-row {
-  background: #e9eef6;
+  background: #1c1c23;
+  border: 1rpx solid #353542;
   border-radius: 8rpx;
   display: grid;
   gap: 6rpx;
@@ -57,22 +58,23 @@ page {
 
 .status-option {
   border-radius: 6rpx;
-  color: #697386;
+  color: #83839c;
   font-size: 26rpx;
   line-height: 64rpx;
   text-align: center;
 }
 
 .status-option.active {
-  background: #ffffff;
-  color: #182235;
+  background: #353542;
+  color: #ffffff;
   font-weight: 600;
 }
 
 .save-button {
   align-items: center;
-  background: #2f6fed;
+  background: linear-gradient(180deg, #ffa699 0%, #ff7966 100%);
   border-radius: 8rpx;
+  box-shadow: 0 18rpx 36rpx rgba(255, 121, 102, 0.3);
   color: #ffffff;
   display: flex;
   font-size: 30rpx;
