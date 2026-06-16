@@ -1,38 +1,58 @@
 const cardApi = require("../../services/cards");
+const authApi = require("../../services/auth");
+
+const wxLogin = () =>
+  new Promise((resolve, reject) => {
+    wx.login({
+      success: resolve,
+      fail: reject,
+    });
+  });
 
 Page({
   data: {
     userInfo: null,
     avatarText: "我",
+    loggedIn: false,
     total: 0,
     pending: 0,
     done: 0,
+    archived: 0,
+    deleted: 0,
   },
 
   onShow() {
     const app = getApp();
     const userInfo = app.globalData.userInfo;
+    const loggedIn = Boolean(app.globalData.token);
     this.setData({
+      loggedIn,
       userInfo,
       avatarText: this.getAvatarText(userInfo),
     });
+
+    if (!loggedIn) {
+      this.resetStats();
+      return;
+    }
+
     this.loadStats();
   },
 
   async loadStats() {
+    if (!this.data.loggedIn) {
+      this.resetStats();
+      return;
+    }
+
     try {
-      const result = await cardApi.getCards({
-        page: 1,
-        pageSize: 100,
-        status: "all",
-        sort: "updatedAt",
-        order: "desc",
-      });
-      const cards = result.list || [];
+      const overview = await cardApi.getOverview();
       this.setData({
-        total: result.total || cards.length,
-        pending: cards.filter((card) => card.status === "todo").length,
-        done: cards.filter((card) => card.status === "done").length,
+        total: (overview.todoCount || 0) + (overview.doneCount || 0) + (overview.archivedCount || 0),
+        pending: overview.todoCount || 0,
+        done: overview.doneCount || 0,
+        archived: overview.archivedCount || 0,
+        deleted: overview.deletedCount || 0,
       });
     } catch (error) {
       wx.showToast({
@@ -42,7 +62,41 @@ Page({
     }
   },
 
-  onLogoutTap() {
+  onRecycleTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    wx.navigateTo({ url: "/pages/recycle-bin/index" });
+  },
+
+  async onLoginTap() {
+    try {
+      const loginResult = await wxLogin();
+      if (!loginResult.code) {
+        throw new Error("登录失败");
+      }
+
+      const authData = await authApi.wechatLogin(loginResult.code);
+      getApp().setAuth(authData.token, authData.userInfo);
+      this.setData({
+        loggedIn: true,
+        userInfo: authData.userInfo,
+        avatarText: this.getAvatarText(authData.userInfo),
+      });
+      wx.showToast({ title: "登录成功", icon: "success" });
+      this.loadStats();
+    } catch (error) {
+      this.showError(error);
+    }
+  },
+
+  onAuthButtonTap() {
+    if (!this.data.loggedIn) {
+      this.onLoginTap();
+      return;
+    }
+
     wx.showModal({
       title: "退出登录",
       content: "确定退出当前账号吗？",
@@ -52,8 +106,39 @@ Page({
           return;
         }
         getApp().clearAuth();
-        wx.redirectTo({ url: "/pages/index/index" });
+        this.setData({
+          loggedIn: false,
+          userInfo: null,
+          avatarText: "我",
+        });
+        this.resetStats();
       },
+    });
+  },
+
+  ensureLoggedIn() {
+    if (this.data.loggedIn) {
+      return true;
+    }
+
+    wx.showToast({ title: "请先登录", icon: "none" });
+    return false;
+  },
+
+  resetStats() {
+    this.setData({
+      total: 0,
+      pending: 0,
+      done: 0,
+      archived: 0,
+      deleted: 0,
+    });
+  },
+
+  showError(error) {
+    wx.showToast({
+      title: error.message || "操作失败",
+      icon: "none",
     });
   },
 

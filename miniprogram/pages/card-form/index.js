@@ -15,6 +15,7 @@ const splitTags = (value) =>
 Page({
   data: {
     id: "",
+    loggedIn: false,
     mode: "create",
     statusOptions: STATUS_OPTIONS,
     form: {
@@ -28,6 +29,12 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncAuthState();
+    if (!this.data.loggedIn) {
+      wx.showToast({ title: "请先登录", icon: "none" });
+      return;
+    }
+
     if (options.id) {
       this.setData({
         id: options.id,
@@ -39,6 +46,10 @@ Page({
   },
 
   async loadCard(id) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       const card = await cardApi.getCard(id);
       this.setData({
@@ -70,6 +81,10 @@ Page({
   },
 
   async onSaveTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     const form = this.data.form;
     const title = form.title.trim();
     if (!title) {
@@ -103,6 +118,21 @@ Page({
     } catch (error) {
       this.showError(error);
     }
+  },
+
+  syncAuthState() {
+    const app = getApp();
+    this.setData({ loggedIn: Boolean(app.globalData.token) });
+  },
+
+  ensureLoggedIn() {
+    this.syncAuthState();
+    if (this.data.loggedIn) {
+      return true;
+    }
+
+    wx.showToast({ title: "请先登录", icon: "none" });
+    return false;
   },
 
   showError(error) {

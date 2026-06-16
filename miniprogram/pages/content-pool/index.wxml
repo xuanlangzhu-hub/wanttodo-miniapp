@@ -4,6 +4,18 @@
     <view class="title">内容池</view>
   </view>
 
+  <view class="search-box">
+    <input
+      class="search-input"
+      placeholder="搜索标题、摘要、摘录或标签"
+      value="{{keyword}}"
+      bindinput="onKeywordInput"
+      confirm-type="search"
+      bindconfirm="onSearchConfirm"
+    />
+    <button class="search-button" bindtap="onSearchConfirm">搜索</button>
+  </view>
+
   <view class="tabs">
     <view
       wx:for="{{statusTabs}}"
@@ -13,6 +25,18 @@
       bindtap="onTabTap"
     >
       {{item.label}}
+    </view>
+  </view>
+
+  <view class="tag-filter" wx:if="{{tags.length}}">
+    <view
+      wx:for="{{tags}}"
+      wx:key="name"
+      class="filter-tag {{selectedTag === item.name ? 'active' : ''}}"
+      data-tag="{{item.name}}"
+      bindtap="onTagTap"
+    >
+      {{item.name}} {{item.count}}
     </view>
   </view>
 
@@ -41,7 +65,7 @@
           <button wx:elif="{{item.status === 'archived'}}" class="text-button" catchtap="onRestoreTap" data-id="{{item.id}}">恢复整理</button>
           <button wx:else class="text-button" catchtap="onOrganizeTap" data-id="{{item.id}}">编辑</button>
           <button wx:if="{{item.status !== 'archived'}}" class="text-button" catchtap="onArchiveTap" data-id="{{item.id}}">归档</button>
-          <button wx:if="{{item.status === 'archived'}}" class="text-button danger-link" catchtap="onDeleteTap" data-id="{{item.id}}">删除</button>
+          <button wx:if="{{item.status === 'archived'}}" class="text-button danger-link" catchtap="onDeleteTap" data-id="{{item.id}}">移除</button>
         </view>
       </view>
     </view>

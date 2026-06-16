@@ -18,9 +18,13 @@ Page({
     statusTabs: STATUS_TABS,
     status: "all",
     cards: [],
+    keyword: "",
+    selectedTag: "",
+    tags: [],
     total: 0,
     pageSize: 20,
     loading: false,
+    loggedIn: false,
   },
 
   onLoad(options = {}) {
@@ -30,10 +34,22 @@ Page({
   },
 
   onShow() {
+    this.syncAuthState();
+    if (!this.data.loggedIn) {
+      this.resetData();
+      return;
+    }
+
+    this.loadTags();
     this.loadCards(false);
   },
 
   onPullDownRefresh() {
+    if (!this.ensureLoggedIn(false)) {
+      wx.stopPullDownRefresh();
+      return;
+    }
+
     this.loadCards(true).finally(() => wx.stopPullDownRefresh());
   },
 
@@ -44,22 +60,60 @@ Page({
     }
 
     this.setData({ status });
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+    this.loadCards(true);
+  },
+
+  onKeywordInput(event) {
+    this.setData({ keyword: event.detail.value || "" });
+  },
+
+  onSearchConfirm() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    this.loadCards(true);
+  },
+
+  onTagTap(event) {
+    const tag = event.currentTarget.dataset.tag || "";
+    this.setData({
+      selectedTag: tag === this.data.selectedTag ? "" : tag,
+    });
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
     this.loadCards(true);
   },
 
   onCardTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/card-detail/index?id=${event.currentTarget.dataset.id}`,
     });
   },
 
   onOrganizeTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/card-form/index?id=${event.currentTarget.dataset.id}`,
     });
   },
 
   async onArchiveTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       await cardApi.archiveCard(event.currentTarget.dataset.id);
       wx.showToast({ title: "已归档", icon: "success" });
@@ -70,6 +124,10 @@ Page({
   },
 
   async onRestoreTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       await cardApi.updateCard(event.currentTarget.dataset.id, { status: "todo" });
       wx.showToast({ title: "已恢复", icon: "success" });
@@ -80,12 +138,16 @@ Page({
   },
 
   onDeleteTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     const { id } = event.currentTarget.dataset;
     wx.showModal({
-      title: "删除卡片",
-      content: "确定删除这张卡片吗？",
-      confirmText: "删除",
-      confirmColor: "#d92d20",
+      title: "移入回收站",
+      content: "确定把这张卡片移入回收站吗？",
+      confirmText: "移除",
+      confirmColor: "#ff7966",
       success: async (result) => {
         if (!result.confirm) {
           return;
@@ -93,7 +155,7 @@ Page({
 
         try {
           await cardApi.deleteCard(id);
-          wx.showToast({ title: "已删除", icon: "success" });
+          wx.showToast({ title: "已移入回收站", icon: "success" });
           this.loadCards(false);
         } catch (error) {
           this.showError(error);
@@ -103,12 +165,19 @@ Page({
   },
 
   async loadCards(showLoading = false) {
+    if (!this.ensureLoggedIn(false)) {
+      this.resetData();
+      return;
+    }
+
     this.setData({ loading: true });
     try {
       const result = await cardApi.getCards({
         page: 1,
         pageSize: this.data.pageSize,
         status: this.data.status,
+        keyword: this.data.keyword,
+        tag: this.data.selectedTag,
         sort: "updatedAt",
         order: "desc",
         showLoading,
@@ -123,6 +192,45 @@ Page({
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  async loadTags() {
+    if (!this.ensureLoggedIn(false)) {
+      this.setData({ tags: [] });
+      return;
+    }
+
+    try {
+      const tags = await cardApi.getTags();
+      this.setData({ tags: tags || [] });
+    } catch (error) {
+      this.setData({ tags: [] });
+    }
+  },
+
+  syncAuthState() {
+    const app = getApp();
+    this.setData({ loggedIn: Boolean(app.globalData.token) });
+  },
+
+  ensureLoggedIn(showTip = true) {
+    if (this.data.loggedIn) {
+      return true;
+    }
+
+    if (showTip) {
+      wx.showToast({ title: "请先登录", icon: "none" });
+    }
+    return false;
+  },
+
+  resetData() {
+    this.setData({
+      cards: [],
+      tags: [],
+      total: 0,
+      loading: false,
+    });
   },
 
   formatCards(cards) {

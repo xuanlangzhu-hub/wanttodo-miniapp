@@ -29,6 +29,13 @@ Page({
     cards: [],
     recentCards: [],
     pendingCards: [],
+    overview: {
+      todoCount: 0,
+      doneCount: 0,
+      archivedCount: 0,
+      deletedCount: 0,
+    },
+    topTags: [],
     total: 0,
     page: 1,
     pageSize: 20,
@@ -146,10 +153,10 @@ Page({
   onDeleteTap(event) {
     const { id } = event.currentTarget.dataset;
     wx.showModal({
-      title: "删除卡片",
-      content: "确定删除这张卡片吗？",
-      confirmText: "删除",
-      confirmColor: "#d92d20",
+      title: "移入回收站",
+      content: "确定把这张卡片移入回收站吗？",
+      confirmText: "移除",
+      confirmColor: "#ff7966",
       success: async (result) => {
         if (!result.confirm) {
           return;
@@ -157,7 +164,7 @@ Page({
 
         try {
           await cardApi.deleteCard(id);
-          wx.showToast({ title: "已删除", icon: "success" });
+          wx.showToast({ title: "已移入回收站", icon: "success" });
           this.loadCards(false);
         } catch (error) {
           this.showError(error);
@@ -173,6 +180,7 @@ Page({
 
     this.setData({ loading: true });
     try {
+      const overview = await cardApi.getOverview();
       const result = await cardApi.getCards({
         page: 1,
         pageSize: this.data.pageSize,
@@ -181,25 +189,31 @@ Page({
         order: "desc",
         showLoading,
       });
-      const allResult = this.data.status === "all"
-        ? result
-        : await cardApi.getCards({
-            page: 1,
-            pageSize: 20,
-            status: "all",
-            sort: "updatedAt",
-            order: "desc",
-          });
+      const pendingResult = await cardApi.getCards({
+        page: 1,
+        pageSize: 3,
+        status: "todo",
+        sort: "updatedAt",
+        order: "desc",
+      });
 
       const cards = this.formatCards(result.list || []);
-      const allCards = this.formatCards(allResult.list || []);
+      const recentCards = this.formatCards((overview && overview.recentCards) || []);
+      const pendingCards = this.formatCards(pendingResult.list || []);
       this.setData({
         cards,
         total: result.total || 0,
         page: result.page || 1,
         pageSize: result.pageSize || this.data.pageSize,
-        recentCards: allCards.slice(0, 3),
-        pendingCards: allCards.filter((card) => card.status === "todo").slice(0, 3),
+        overview: Object.assign({
+          todoCount: 0,
+          doneCount: 0,
+          archivedCount: 0,
+          deletedCount: 0,
+        }, overview || {}),
+        recentCards: recentCards.slice(0, 3),
+        pendingCards,
+        topTags: (overview && overview.topTags) || [],
       });
     } catch (error) {
       if (error.statusCode === 401) {

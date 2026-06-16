@@ -23,14 +23,22 @@
       <view class="stat-value">{{done}}</view>
       <view class="stat-label">已整理</view>
     </view>
+    <view class="stat-card">
+      <view class="stat-value">{{archived}}</view>
+      <view class="stat-label">已归档</view>
+    </view>
   </view>
 
   <view class="settings">
+    <view class="setting-row" bindtap="onRecycleTap">
+      <text>回收站</text>
+      <text>{{deleted}} 张</text>
+    </view>
     <view class="setting-row">
       <text>当前版本</text>
-      <text>v1 知识卡片</text>
+      <text>v2 知识卡片</text>
     </view>
-    <button class="logout-button" bindtap="onLogoutTap">退出登录</button>
+    <button class="logout-button" bindtap="onAuthButtonTap">{{loggedIn ? '退出登录' : '登录'}}</button>
   </view>
 
   <bottom-nav active="me"></bottom-nav>

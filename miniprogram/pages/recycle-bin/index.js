@@ -3,9 +3,11 @@ const cardApi = require("../../services/cards");
 Page({
   data: {
     cards: [],
-    total: 0,
+    keyword: "",
     loading: false,
     loggedIn: false,
+    pageSize: 20,
+    total: 0,
   },
 
   onShow() {
@@ -27,38 +29,57 @@ Page({
     this.loadCards(true).finally(() => wx.stopPullDownRefresh());
   },
 
-  onCardTap(event) {
+  onKeywordInput(event) {
+    this.setData({ keyword: event.detail.value || "" });
+  },
+
+  onSearchConfirm() {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
-    wx.navigateTo({
-      url: `/pages/card-detail/index?id=${event.currentTarget.dataset.id}`,
-    });
+    this.loadCards(true);
   },
 
-  onOrganizeTap(event) {
-    if (!this.ensureLoggedIn()) {
-      return;
-    }
-
-    wx.navigateTo({
-      url: `/pages/card-form/index?id=${event.currentTarget.dataset.id}`,
-    });
-  },
-
-  async onArchiveTap(event) {
+  async onRestoreTap(event) {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
     try {
-      await cardApi.archiveCard(event.currentTarget.dataset.id);
-      wx.showToast({ title: "已归档", icon: "success" });
+      await cardApi.restoreCard(event.currentTarget.dataset.id);
+      wx.showToast({ title: "已恢复", icon: "success" });
       this.loadCards(false);
     } catch (error) {
       this.showError(error);
     }
+  },
+
+  onPermanentDeleteTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    const { id } = event.currentTarget.dataset;
+    wx.showModal({
+      title: "彻底删除",
+      content: "彻底删除后无法恢复，确定继续吗？",
+      confirmText: "删除",
+      confirmColor: "#ff7966",
+      success: async (result) => {
+        if (!result.confirm) {
+          return;
+        }
+
+        try {
+          await cardApi.permanentDeleteCard(id);
+          wx.showToast({ title: "已彻底删除", icon: "success" });
+          this.loadCards(false);
+        } catch (error) {
+          this.showError(error);
+        }
+      },
+    });
   },
 
   async loadCards(showLoading = false) {
@@ -69,18 +90,16 @@ Page({
 
     this.setData({ loading: true });
     try {
-      const result = await cardApi.getCards({
+      const result = await cardApi.getDeletedCards({
         page: 1,
-        pageSize: 50,
-        status: "todo",
-        sort: "updatedAt",
-        order: "desc",
+        pageSize: this.data.pageSize,
+        keyword: this.data.keyword,
         showLoading,
       });
 
       this.setData({
         cards: (result.list || []).map((card) => Object.assign({}, card, {
-          updatedAtText: card.updatedAt ? String(card.updatedAt).replace("T", " ").slice(0, 16) : "",
+          deletedAtText: this.formatTime(card.deletedAt || card.updatedAt),
         })),
         total: result.total || 0,
       });
@@ -113,6 +132,10 @@ Page({
       total: 0,
       loading: false,
     });
+  },
+
+  formatTime(value) {
+    return value ? String(value).replace("T", " ").slice(0, 16) : "";
   },
 
   showError(error) {
