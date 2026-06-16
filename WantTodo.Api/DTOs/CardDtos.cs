@@ -8,6 +8,7 @@ public class CreateCardDto
     public string? Summary { get; set; }
     public string? SourceUrl { get; set; }
     public List<string>? Tags { get; set; }
+    public string? Status { get; set; }
 }
 
 // 更新卡片（所有字段可选）

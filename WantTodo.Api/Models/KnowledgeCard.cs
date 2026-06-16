@@ -18,8 +18,10 @@ public class KnowledgeCard
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // 外键
-    [JsonIgnore]
+    // 软删除
+    public DateTime? DeletedAt { get; set; }
+
+    // 外键（userId 按契约返回给前端，User 导航属性隐藏）
     public string UserId { get; set; } = string.Empty;
     [JsonIgnore]
     public User? User { get; set; }

@@ -23,9 +23,7 @@ public class UserController : ControllerBase
     [HttpGet("profile")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetProfile()
     {
-        var user = await _db.Users
-            .Include(u => u.Cards)
-            .FirstOrDefaultAsync(u => u.Id == UserId);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == UserId);
 
         if (user == null)
             return NotFound(ApiResponse<UserProfileDto>.NotFound("用户不存在"));
@@ -34,10 +32,7 @@ public class UserController : ControllerBase
         {
             UserId = user.Id,
             Nickname = user.Nickname,
-            AvatarUrl = user.AvatarUrl,
-            CardCount = user.Cards.Count,
-            TodoCount = user.Cards.Count(c => c.Status == "todo"),
-            DoneCount = user.Cards.Count(c => c.Status == "done")
+            AvatarUrl = user.AvatarUrl
         };
 
         return Ok(ApiResponse<UserProfileDto>.Ok(profile));
