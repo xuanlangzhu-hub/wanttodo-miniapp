@@ -36,6 +36,6 @@
     <button wx:else class="primary" bindtap="onEditTap">编辑</button>
     <button wx:if="{{card.status !== 'archived'}}" class="secondary" bindtap="onArchiveTap">归档</button>
     <button wx:else class="secondary" bindtap="onRestoreTap">恢复整理</button>
-    <button class="danger" bindtap="onDeleteTap">删除</button>
+    <button class="danger" bindtap="onDeleteTap">移除</button>
   </view>
 </view>

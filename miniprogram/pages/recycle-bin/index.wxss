@@ -31,25 +31,3 @@
   margin: 0;
   padding: 0 24rpx;
 }
-
-.tag-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 18rpx;
-}
-
-.filter-tag {
-  background: #1c1c23;
-  border: 1rpx solid #353542;
-  border-radius: 999rpx;
-  color: #a2a2b5;
-  font-size: 22rpx;
-  padding: 8rpx 16rpx;
-}
-
-.filter-tag.active {
-  background: rgba(255, 121, 102, 0.18);
-  border-color: rgba(255, 121, 102, 0.55);
-  color: #ff9a86;
-}

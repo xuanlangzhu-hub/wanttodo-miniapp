@@ -14,12 +14,12 @@
   <view class="quick-panel">
     <button class="primary-action" bindtap="onCreateTap">新建卡片</button>
     <view class="metric">
-      <view class="metric-value">{{pendingCards.length}}</view>
+      <view class="metric-value">{{overview.todoCount}}</view>
       <view class="metric-label">待整理</view>
     </view>
     <view class="metric">
-      <view class="metric-value">{{recentCards.length}}</view>
-      <view class="metric-label">最近整理</view>
+      <view class="metric-value">{{overview.doneCount}}</view>
+      <view class="metric-label">已整理</view>
     </view>
   </view>
 
@@ -117,7 +117,7 @@
             catchtap="onDeleteTap"
             data-id="{{item.id}}"
           >
-            删除
+            移除
           </button>
         </view>
       </view>

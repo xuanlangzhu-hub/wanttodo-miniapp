@@ -5,7 +5,8 @@
     "pages/pending/index",
     "pages/profile/index",
     "pages/card-form/index",
-    "pages/card-detail/index"
+    "pages/card-detail/index",
+    "pages/recycle-bin/index"
   ],
   "window": {
     "backgroundColor": "#0E0E12",

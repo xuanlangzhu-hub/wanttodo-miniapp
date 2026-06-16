@@ -70,10 +70,10 @@ Page({
 
   onDeleteTap() {
     wx.showModal({
-      title: "删除卡片",
-      content: "确定删除这张卡片吗？",
-      confirmText: "删除",
-      confirmColor: "#d92d20",
+      title: "移入回收站",
+      content: "确定把这张卡片移入回收站吗？",
+      confirmText: "移除",
+      confirmColor: "#ff7966",
       success: async (result) => {
         if (!result.confirm) {
           return;
@@ -81,7 +81,7 @@ Page({
 
         try {
           await cardApi.deleteCard(this.data.id);
-          wx.showToast({ title: "已删除", icon: "success" });
+          wx.showToast({ title: "已移入回收站", icon: "success" });
           setTimeout(() => wx.navigateBack(), 350);
         } catch (error) {
           this.showError(error);

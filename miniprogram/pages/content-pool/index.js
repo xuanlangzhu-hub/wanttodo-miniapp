@@ -18,6 +18,9 @@ Page({
     statusTabs: STATUS_TABS,
     status: "all",
     cards: [],
+    keyword: "",
+    selectedTag: "",
+    tags: [],
     total: 0,
     pageSize: 20,
     loading: false,
@@ -30,6 +33,7 @@ Page({
   },
 
   onShow() {
+    this.loadTags();
     this.loadCards(false);
   },
 
@@ -44,6 +48,22 @@ Page({
     }
 
     this.setData({ status });
+    this.loadCards(true);
+  },
+
+  onKeywordInput(event) {
+    this.setData({ keyword: event.detail.value || "" });
+  },
+
+  onSearchConfirm() {
+    this.loadCards(true);
+  },
+
+  onTagTap(event) {
+    const tag = event.currentTarget.dataset.tag || "";
+    this.setData({
+      selectedTag: tag === this.data.selectedTag ? "" : tag,
+    });
     this.loadCards(true);
   },
 
@@ -82,10 +102,10 @@ Page({
   onDeleteTap(event) {
     const { id } = event.currentTarget.dataset;
     wx.showModal({
-      title: "删除卡片",
-      content: "确定删除这张卡片吗？",
-      confirmText: "删除",
-      confirmColor: "#d92d20",
+      title: "移入回收站",
+      content: "确定把这张卡片移入回收站吗？",
+      confirmText: "移除",
+      confirmColor: "#ff7966",
       success: async (result) => {
         if (!result.confirm) {
           return;
@@ -93,7 +113,7 @@ Page({
 
         try {
           await cardApi.deleteCard(id);
-          wx.showToast({ title: "已删除", icon: "success" });
+          wx.showToast({ title: "已移入回收站", icon: "success" });
           this.loadCards(false);
         } catch (error) {
           this.showError(error);
@@ -109,6 +129,8 @@ Page({
         page: 1,
         pageSize: this.data.pageSize,
         status: this.data.status,
+        keyword: this.data.keyword,
+        tag: this.data.selectedTag,
         sort: "updatedAt",
         order: "desc",
         showLoading,
@@ -122,6 +144,15 @@ Page({
       this.showError(error);
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  async loadTags() {
+    try {
+      const tags = await cardApi.getTags();
+      this.setData({ tags: tags || [] });
+    } catch (error) {
+      this.setData({ tags: [] });
     }
   },
 

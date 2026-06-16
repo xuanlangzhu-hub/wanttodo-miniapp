@@ -27,6 +27,8 @@ const getCards = async (params = {}) => {
       page: params.page || 1,
       pageSize: params.pageSize || 20,
       status: params.status || "all",
+      keyword: params.keyword || "",
+      tag: params.tag || "",
       sort: params.sort || "updatedAt",
       order: params.order || "desc",
     },
@@ -65,11 +67,51 @@ const deleteCard = (id) =>
     showLoading: true,
   });
 
+const getDeletedCards = async (params = {}) => {
+  const data = await request({
+    path: "/cards/deleted",
+    query: {
+      page: params.page || 1,
+      pageSize: params.pageSize || 20,
+      keyword: params.keyword || "",
+      sort: params.sort || "deletedAt",
+      order: params.order || "desc",
+    },
+    showLoading: params.showLoading,
+  });
+
+  return normalizeListResult(data);
+};
+
+const restoreCard = (id) =>
+  request({
+    path: `/cards/${id}/restore`,
+    method: "PATCH",
+    showLoading: true,
+  });
+
+const permanentDeleteCard = (id) =>
+  request({
+    path: `/cards/${id}/permanent`,
+    method: "DELETE",
+    showLoading: true,
+  });
+
 const archiveCard = (id) =>
   request({
     path: `/cards/${id}/archive`,
     method: "PATCH",
     showLoading: true,
+  });
+
+const getTags = () =>
+  request({
+    path: "/cards/tags",
+  });
+
+const getOverview = () =>
+  request({
+    path: "/cards/overview",
   });
 
 module.exports = {
@@ -78,5 +120,10 @@ module.exports = {
   createCard,
   updateCard,
   deleteCard,
+  getDeletedCards,
+  restoreCard,
+  permanentDeleteCard,
   archiveCard,
+  getTags,
+  getOverview,
 };

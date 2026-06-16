@@ -7,6 +7,8 @@ Page({
     total: 0,
     pending: 0,
     done: 0,
+    archived: 0,
+    deleted: 0,
   },
 
   onShow() {
@@ -21,18 +23,13 @@ Page({
 
   async loadStats() {
     try {
-      const result = await cardApi.getCards({
-        page: 1,
-        pageSize: 100,
-        status: "all",
-        sort: "updatedAt",
-        order: "desc",
-      });
-      const cards = result.list || [];
+      const overview = await cardApi.getOverview();
       this.setData({
-        total: result.total || cards.length,
-        pending: cards.filter((card) => card.status === "todo").length,
-        done: cards.filter((card) => card.status === "done").length,
+        total: (overview.todoCount || 0) + (overview.doneCount || 0) + (overview.archivedCount || 0),
+        pending: overview.todoCount || 0,
+        done: overview.doneCount || 0,
+        archived: overview.archivedCount || 0,
+        deleted: overview.deletedCount || 0,
       });
     } catch (error) {
       wx.showToast({
@@ -40,6 +37,10 @@ Page({
         icon: "none",
       });
     }
+  },
+
+  onRecycleTap() {
+    wx.navigateTo({ url: "/pages/recycle-bin/index" });
   },
 
   onLogoutTap() {
