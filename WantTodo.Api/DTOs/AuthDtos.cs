@@ -27,7 +27,4 @@ public class UserProfileDto
     public string UserId { get; set; } = string.Empty;
     public string Nickname { get; set; } = string.Empty;
     public string AvatarUrl { get; set; } = string.Empty;
-    public int CardCount { get; set; }
-    public int TodoCount { get; set; }
-    public int DoneCount { get; set; }
 }

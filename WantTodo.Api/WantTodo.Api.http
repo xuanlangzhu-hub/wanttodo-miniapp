@@ -2,33 +2,37 @@
 
 ### 开发测试 Token
 GET {{HostAddress}}/api/v1/auth/dev-token
-Accept: application/json
 
-### 获取卡片列表
-GET {{HostAddress}}/api/v1/cards
-Authorization: Bearer <你的Token>
-Accept: application/json
-
-### 获取卡片列表（按状态筛选）
-GET {{HostAddress}}/api/v1/cards?status=todo&sort=updatedAt&order=desc
-Authorization: Bearer <你的Token>
+### ── 卡片接口 ──
 
 ### 创建卡片
 POST {{HostAddress}}/api/v1/cards
-Authorization: Bearer <你的Token>
+Authorization: Bearer <Token>
 Content-Type: application/json
 
 {
   "title": "测试知识卡片",
-  "sourceText": "这是一段原文摘录",
-  "summary": "这是摘要",
+  "sourceText": "原文摘录",
+  "summary": "简短摘要",
   "sourceUrl": "https://example.com",
-  "tags": ["AI", "Python"]
+  "tags": ["AI", "工具"]
 }
+
+### 卡片列表
+GET {{HostAddress}}/api/v1/cards?status=all&sort=updatedAt&order=desc
+Authorization: Bearer <Token>
+
+### 卡片列表（搜索）
+GET {{HostAddress}}/api/v1/cards?keyword=AI&tag=工具
+Authorization: Bearer <Token>
+
+### 卡片详情
+GET {{HostAddress}}/api/v1/cards/{id}
+Authorization: Bearer <Token>
 
 ### 更新卡片
 PATCH {{HostAddress}}/api/v1/cards/{id}
-Authorization: Bearer <你的Token>
+Authorization: Bearer <Token>
 Content-Type: application/json
 
 {
@@ -38,12 +42,38 @@ Content-Type: application/json
 
 ### 归档卡片
 PATCH {{HostAddress}}/api/v1/cards/{id}/archive
-Authorization: Bearer <你的Token>
+Authorization: Bearer <Token>
 
-### 删除卡片
+### 软删除卡片
 DELETE {{HostAddress}}/api/v1/cards/{id}
-Authorization: Bearer <你的Token>
+Authorization: Bearer <Token>
 
-### 获取用户信息
+### ── 回收站 ──
+
+### 回收站列表
+GET {{HostAddress}}/api/v1/cards/deleted
+Authorization: Bearer <Token>
+
+### 恢复卡片
+PATCH {{HostAddress}}/api/v1/cards/{id}/restore
+Authorization: Bearer <Token>
+
+### 彻底删除
+DELETE {{HostAddress}}/api/v1/cards/{id}/permanent
+Authorization: Bearer <Token>
+
+### ── 标签与工作台 ──
+
+### 标签汇总
+GET {{HostAddress}}/api/v1/cards/tags
+Authorization: Bearer <Token>
+
+### 工作台概览
+GET {{HostAddress}}/api/v1/cards/overview
+Authorization: Bearer <Token>
+
+### ── 用户 ──
+
+### 用户信息
 GET {{HostAddress}}/api/v1/user/profile
-Authorization: Bearer <你的Token>
+Authorization: Bearer <Token>
