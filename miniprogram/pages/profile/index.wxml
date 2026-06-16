@@ -38,7 +38,7 @@
       <text>当前版本</text>
       <text>v2 知识卡片</text>
     </view>
-    <button class="logout-button" bindtap="onLogoutTap">退出登录</button>
+    <button class="logout-button" bindtap="onAuthButtonTap">{{loggedIn ? '退出登录' : '登录'}}</button>
   </view>
 
   <bottom-nav active="me"></bottom-nav>

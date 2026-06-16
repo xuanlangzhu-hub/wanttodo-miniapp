@@ -5,15 +5,27 @@ Page({
     cards: [],
     keyword: "",
     loading: false,
+    loggedIn: false,
     pageSize: 20,
     total: 0,
   },
 
   onShow() {
+    this.syncAuthState();
+    if (!this.data.loggedIn) {
+      this.resetData();
+      return;
+    }
+
     this.loadCards(false);
   },
 
   onPullDownRefresh() {
+    if (!this.ensureLoggedIn(false)) {
+      wx.stopPullDownRefresh();
+      return;
+    }
+
     this.loadCards(true).finally(() => wx.stopPullDownRefresh());
   },
 
@@ -22,10 +34,18 @@ Page({
   },
 
   onSearchConfirm() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     this.loadCards(true);
   },
 
   async onRestoreTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       await cardApi.restoreCard(event.currentTarget.dataset.id);
       wx.showToast({ title: "已恢复", icon: "success" });
@@ -36,6 +56,10 @@ Page({
   },
 
   onPermanentDeleteTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     const { id } = event.currentTarget.dataset;
     wx.showModal({
       title: "彻底删除",
@@ -59,6 +83,11 @@ Page({
   },
 
   async loadCards(showLoading = false) {
+    if (!this.ensureLoggedIn(false)) {
+      this.resetData();
+      return;
+    }
+
     this.setData({ loading: true });
     try {
       const result = await cardApi.getDeletedCards({
@@ -79,6 +108,30 @@ Page({
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  syncAuthState() {
+    const app = getApp();
+    this.setData({ loggedIn: Boolean(app.globalData.token) });
+  },
+
+  ensureLoggedIn(showTip = true) {
+    if (this.data.loggedIn) {
+      return true;
+    }
+
+    if (showTip) {
+      wx.showToast({ title: "请先登录", icon: "none" });
+    }
+    return false;
+  },
+
+  resetData() {
+    this.setData({
+      cards: [],
+      total: 0,
+      loading: false,
+    });
   },
 
   formatTime(value) {

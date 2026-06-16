@@ -10,20 +10,33 @@ Page({
   data: {
     id: "",
     card: null,
+    loggedIn: false,
     statusText: "",
   },
 
   onLoad(options) {
+    this.syncAuthState();
     this.setData({ id: options.id || "" });
   },
 
   onShow() {
+    this.syncAuthState();
+    if (!this.data.loggedIn) {
+      this.setData({ card: null, statusText: "" });
+      wx.showToast({ title: "请先登录", icon: "none" });
+      return;
+    }
+
     if (this.data.id) {
       this.loadCard();
     }
   },
 
   async loadCard() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       const card = await cardApi.getCard(this.data.id);
       this.setData({
@@ -39,6 +52,10 @@ Page({
   },
 
   onEditTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/card-form/index?id=${this.data.id}`,
     });
@@ -49,6 +66,10 @@ Page({
   },
 
   async onArchiveTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       await cardApi.archiveCard(this.data.id);
       wx.showToast({ title: "已归档", icon: "success" });
@@ -59,6 +80,10 @@ Page({
   },
 
   async onRestoreTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     try {
       await cardApi.updateCard(this.data.id, { status: "todo" });
       wx.showToast({ title: "已恢复", icon: "success" });
@@ -69,6 +94,10 @@ Page({
   },
 
   onDeleteTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
     wx.showModal({
       title: "移入回收站",
       content: "确定把这张卡片移入回收站吗？",
@@ -88,6 +117,21 @@ Page({
         }
       },
     });
+  },
+
+  syncAuthState() {
+    const app = getApp();
+    this.setData({ loggedIn: Boolean(app.globalData.token) });
+  },
+
+  ensureLoggedIn() {
+    this.syncAuthState();
+    if (this.data.loggedIn) {
+      return true;
+    }
+
+    wx.showToast({ title: "请先登录", icon: "none" });
+    return false;
   },
 
   showError(error) {
