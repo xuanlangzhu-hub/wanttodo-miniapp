@@ -52,6 +52,14 @@ const createCard = (card) =>
     showLoading: true,
   });
 
+const organizeCard = (payload) =>
+  request({
+    path: "/cards/organize",
+    method: "POST",
+    data: payload,
+    showLoading: true,
+  });
+
 const updateCard = (id, patch) =>
   request({
     path: `/cards/${id}`,
@@ -109,6 +117,20 @@ const getTags = () =>
     path: "/cards/tags",
   });
 
+const getPresetTags = () =>
+  request({
+    path: "/tags/presets",
+  });
+
+const getSuggestions = (params = {}) =>
+  request({
+    path: "/cards/suggestions",
+    query: {
+      keyword: params.keyword || "",
+      limit: params.limit || 8,
+    },
+  });
+
 const getOverview = () =>
   request({
     path: "/cards/overview",
@@ -118,6 +140,7 @@ module.exports = {
   getCards,
   getCard,
   createCard,
+  organizeCard,
   updateCard,
   deleteCard,
   getDeletedCards,
@@ -125,5 +148,7 @@ module.exports = {
   permanentDeleteCard,
   archiveCard,
   getTags,
+  getPresetTags,
+  getSuggestions,
   getOverview,
 };

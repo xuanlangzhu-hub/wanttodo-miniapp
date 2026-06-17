@@ -14,11 +14,19 @@ const STATUS_TEXT = {
 };
 
 Page({
+  suggestionTimer: null,
+
   data: {
     statusTabs: STATUS_TABS,
     status: "all",
     cards: [],
     keyword: "",
+    suggestions: {
+      keywords: [],
+      tags: [],
+      cards: [],
+    },
+    showSuggestions: false,
     selectedTag: "",
     tags: [],
     total: 0,
@@ -59,6 +67,10 @@ Page({
     this.loadCards(true).finally(() => wx.stopPullDownRefresh());
   },
 
+  onUnload() {
+    this.clearSuggestions();
+  },
+
   onTabTap(event) {
     const status = event.currentTarget.dataset.status;
     if (status === this.data.status) {
@@ -73,7 +85,9 @@ Page({
   },
 
   onKeywordInput(event) {
-    this.setData({ keyword: event.detail.value || "" });
+    const keyword = event.detail.value || "";
+    this.setData({ keyword });
+    this.queueSuggestions(keyword);
   },
 
   onSearchConfirm() {
@@ -81,7 +95,32 @@ Page({
       return;
     }
 
+    this.clearSuggestions();
     this.loadCards(true);
+  },
+
+  onSuggestionKeywordTap(event) {
+    const keyword = event.currentTarget.dataset.keyword || "";
+    this.setData({ keyword });
+    this.clearSuggestions();
+    this.loadCards(true);
+  },
+
+  onSuggestionTagTap(event) {
+    const tag = event.currentTarget.dataset.tag || "";
+    this.setData({
+      selectedTag: tag,
+      keyword: "",
+    });
+    this.clearSuggestions();
+    this.loadCards(true);
+  },
+
+  onSuggestionCardTap(event) {
+    this.clearSuggestions();
+    wx.navigateTo({
+      url: `/pages/card-detail/index?id=${event.currentTarget.dataset.id}`,
+    });
   },
 
   onTagTap(event) {
@@ -212,6 +251,57 @@ Page({
     } catch (error) {
       this.setData({ tags: [] });
     }
+  },
+
+  queueSuggestions(keyword) {
+    if (this.suggestionTimer) {
+      clearTimeout(this.suggestionTimer);
+    }
+
+    const trimmed = (keyword || "").trim();
+    if (!trimmed || !this.data.loggedIn) {
+      this.clearSuggestions();
+      return;
+    }
+
+    this.suggestionTimer = setTimeout(() => {
+      this.loadSuggestions(trimmed);
+    }, 260);
+  },
+
+  async loadSuggestions(keyword) {
+    try {
+      const suggestions = await cardApi.getSuggestions({ keyword, limit: 6 });
+      this.setData({
+        suggestions: {
+          keywords: suggestions.keywords || [],
+          tags: suggestions.tags || [],
+          cards: suggestions.cards || [],
+        },
+        showSuggestions: Boolean(
+          (suggestions.keywords && suggestions.keywords.length) ||
+          (suggestions.tags && suggestions.tags.length) ||
+          (suggestions.cards && suggestions.cards.length)
+        ),
+      });
+    } catch (error) {
+      this.clearSuggestions();
+    }
+  },
+
+  clearSuggestions() {
+    if (this.suggestionTimer) {
+      clearTimeout(this.suggestionTimer);
+      this.suggestionTimer = null;
+    }
+    this.setData({
+      suggestions: {
+        keywords: [],
+        tags: [],
+        cards: [],
+      },
+      showSuggestions: false,
+    });
   },
 
   syncAuthState() {

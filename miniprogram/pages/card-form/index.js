@@ -17,6 +17,10 @@ Page({
     id: "",
     loggedIn: false,
     mode: "create",
+    organizing: false,
+    presetTags: [],
+    presetTagItems: [],
+    selectedTags: [],
     navTop: 0,
     navHeight: 44,
     contentTop: 92,
@@ -47,6 +51,7 @@ Page({
       wx.setNavigationBarTitle({ title: "编辑卡片" });
       this.loadCard(options.id);
     }
+    this.loadPresetTags();
   },
 
   setNavMetrics() {
@@ -87,7 +92,9 @@ Page({
           tagsText: (card.tags || []).join(" "),
           status: card.status || "todo",
         },
+        selectedTags: card.tags || [],
       });
+      this.updatePresetTagItems(card.tags || [], this.data.presetTags);
     } catch (error) {
       this.showError(error);
     }
@@ -95,15 +102,74 @@ Page({
 
   onInput(event) {
     const { field } = event.currentTarget.dataset;
-    this.setData({
-      [`form.${field}`]: event.detail.value,
-    });
+    const value = event.detail.value;
+    const patch = {
+      [`form.${field}`]: value,
+    };
+    if (field === "tagsText") {
+      patch.selectedTags = splitTags(value);
+      patch.presetTagItems = this.formatPresetTagItems(this.data.presetTags, patch.selectedTags);
+    }
+    this.setData(patch);
   },
 
   onStatusTap(event) {
     this.setData({
       "form.status": event.currentTarget.dataset.status,
     });
+  },
+
+  onPresetTagTap(event) {
+    const tag = event.currentTarget.dataset.tag || "";
+    const tags = splitTags(this.data.form.tagsText);
+    const nextTags = tags.includes(tag)
+      ? tags.filter((item) => item !== tag)
+      : tags.concat(tag);
+
+    this.setData({
+      "form.tagsText": nextTags.join(" "),
+      selectedTags: nextTags,
+      presetTagItems: this.formatPresetTagItems(this.data.presetTags, nextTags),
+    });
+  },
+
+  async onOrganizeTap() {
+    if (this.data.organizing) {
+      return;
+    }
+
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    const sourceText = this.data.form.sourceText.trim();
+    if (!sourceText) {
+      wx.showToast({ title: "请先填写内容", icon: "none" });
+      return;
+    }
+
+    this.setData({ organizing: true });
+    try {
+      const result = await cardApi.organizeCard({
+        sourceText,
+        sourceUrl: this.data.form.sourceUrl.trim(),
+      });
+      const nextTags = result.tags && result.tags.length ? result.tags.join(" ") : this.data.form.tagsText;
+
+      this.setData({
+        "form.title": result.title || this.data.form.title,
+        "form.summary": result.summary || this.data.form.summary,
+        "form.tagsText": nextTags,
+        selectedTags: splitTags(nextTags),
+        presetTagItems: this.formatPresetTagItems(this.data.presetTags, splitTags(nextTags)),
+        "form.status": result.status || this.data.form.status || "todo",
+      });
+      wx.showToast({ title: "已生成整理建议", icon: "success" });
+    } catch (error) {
+      this.showError(error);
+    } finally {
+      this.setData({ organizing: false });
+    }
   },
 
   async onSaveTap() {
@@ -151,13 +217,45 @@ Page({
     this.setData({ loggedIn: Boolean(app.globalData.token) });
   },
 
-  ensureLoggedIn() {
+  async loadPresetTags() {
+    if (!this.ensureLoggedIn(false)) {
+      this.setData({ presetTags: [] });
+      return;
+    }
+
+    try {
+      const tags = await cardApi.getPresetTags();
+      this.setData({
+        presetTags: tags || [],
+        presetTagItems: this.formatPresetTagItems(tags || [], this.data.selectedTags),
+      });
+    } catch (error) {
+      this.setData({ presetTags: [] });
+    }
+  },
+
+  updatePresetTagItems(selectedTags, presetTags) {
+    this.setData({
+      presetTagItems: this.formatPresetTagItems(presetTags || [], selectedTags || []),
+    });
+  },
+
+  formatPresetTagItems(presetTags, selectedTags) {
+    return (presetTags || []).map((tag) => ({
+      name: tag,
+      selected: (selectedTags || []).includes(tag),
+    }));
+  },
+
+  ensureLoggedIn(showTip = true) {
     this.syncAuthState();
     if (this.data.loggedIn) {
       return true;
     }
 
-    wx.showToast({ title: "请先登录", icon: "none" });
+    if (showTip) {
+      wx.showToast({ title: "请先登录", icon: "none" });
+    }
     return false;
   },
 
