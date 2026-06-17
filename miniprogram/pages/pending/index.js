@@ -1,9 +1,20 @@
 const cardApi = require("../../services/cards");
 
+const STATUS_LABELS = {
+  done: "已整理",
+  todo: "待整理",
+  archived: "已归档",
+};
+
 Page({
   data: {
-    cards: [],
-    total: 0,
+    keyword: "",
+    tags: [],
+    filteredTags: [],
+    topTags: [],
+    statusRows: [],
+    totalCards: 0,
+    donePercent: 0,
     loading: false,
     loggedIn: false,
   },
@@ -15,7 +26,7 @@ Page({
       return;
     }
 
-    this.loadCards(false);
+    this.loadCatalog(false);
   },
 
   onPullDownRefresh() {
@@ -24,44 +35,55 @@ Page({
       return;
     }
 
-    this.loadCards(true).finally(() => wx.stopPullDownRefresh());
+    this.loadCatalog(true).finally(() => wx.stopPullDownRefresh());
   },
 
-  onCardTap(event) {
+  onKeywordInput(event) {
+    const keyword = event.detail.value || "";
+    this.setData({ keyword });
+    this.updateFilteredTags(keyword, this.data.tags);
+  },
+
+  onSearchConfirm() {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
-    wx.navigateTo({
-      url: `/pages/card-detail/index?id=${event.currentTarget.dataset.id}`,
+    const keyword = this.data.keyword.trim();
+    if (!keyword) {
+      return;
+    }
+
+    wx.redirectTo({
+      url: `/pages/content-pool/index?keyword=${encodeURIComponent(keyword)}`,
     });
   },
 
-  onOrganizeTap(event) {
+  onTagTap(event) {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
-    wx.navigateTo({
-      url: `/pages/card-form/index?id=${event.currentTarget.dataset.id}`,
+    wx.redirectTo({
+      url: `/pages/content-pool/index?tag=${encodeURIComponent(event.currentTarget.dataset.tag || "")}`,
     });
   },
 
-  async onArchiveTap(event) {
+  onStatusTap(event) {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
-    try {
-      await cardApi.archiveCard(event.currentTarget.dataset.id);
-      wx.showToast({ title: "已归档", icon: "success" });
-      this.loadCards(false);
-    } catch (error) {
-      this.showError(error);
-    }
+    wx.redirectTo({
+      url: `/pages/content-pool/index?status=${event.currentTarget.dataset.status}`,
+    });
   },
 
-  async loadCards(showLoading = false) {
+  onManageHintTap() {
+    wx.showToast({ title: "标签由卡片自动汇总", icon: "none" });
+  },
+
+  async loadCatalog(showLoading = false) {
     if (!this.ensureLoggedIn(false)) {
       this.resetData();
       return;
@@ -69,26 +91,66 @@ Page({
 
     this.setData({ loading: true });
     try {
-      const result = await cardApi.getCards({
-        page: 1,
-        pageSize: 50,
-        status: "todo",
-        sort: "updatedAt",
-        order: "desc",
-        showLoading,
-      });
+      const [tags, overview] = await Promise.all([
+        cardApi.getTags(),
+        cardApi.getOverview(),
+      ]);
+      const formattedTags = this.formatTags(tags || []);
+      const statusRows = this.formatStatusRows(overview || {});
+      const totalCards = statusRows.reduce((sum, item) => sum + item.count, 0);
+      const done = overview && overview.doneCount ? overview.doneCount : 0;
 
       this.setData({
-        cards: (result.list || []).map((card) => Object.assign({}, card, {
-          updatedAtText: card.updatedAt ? String(card.updatedAt).replace("T", " ").slice(0, 16) : "",
-        })),
-        total: result.total || 0,
+        tags: formattedTags,
+        topTags: formattedTags.slice(0, 8),
+        statusRows,
+        totalCards,
+        donePercent: totalCards ? Math.round((done / totalCards) * 100) : 0,
       });
+      this.updateFilteredTags(this.data.keyword, formattedTags);
     } catch (error) {
       this.showError(error);
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  formatTags(tags) {
+    const sorted = tags
+      .map((tag) => ({
+        name: tag.name || "",
+        count: tag.count || 0,
+      }))
+      .filter((tag) => tag.name)
+      .sort((a, b) => b.count - a.count);
+    const maxCount = sorted.length ? sorted[0].count : 0;
+
+    return sorted.map((tag) => Object.assign({}, tag, {
+      initial: tag.name.slice(0, 1).toUpperCase(),
+      percent: maxCount ? Math.max(8, Math.round((tag.count / maxCount) * 100)) : 0,
+    }));
+  },
+
+  formatStatusRows(overview) {
+    const rows = [
+      { label: STATUS_LABELS.done, value: "done", count: overview.doneCount || 0 },
+      { label: STATUS_LABELS.todo, value: "todo", count: overview.todoCount || 0 },
+      { label: STATUS_LABELS.archived, value: "archived", count: overview.archivedCount || 0 },
+    ];
+    const maxCount = rows.reduce((max, item) => Math.max(max, item.count), 0);
+
+    return rows.map((item) => Object.assign({}, item, {
+      percent: maxCount ? Math.max(6, Math.round((item.count / maxCount) * 100)) : 0,
+    }));
+  },
+
+  updateFilteredTags(keyword, tags) {
+    const normalized = (keyword || "").trim().toLowerCase();
+    const filteredTags = normalized
+      ? tags.filter((tag) => tag.name.toLowerCase().includes(normalized))
+      : tags;
+
+    this.setData({ filteredTags });
   },
 
   syncAuthState() {
@@ -109,15 +171,19 @@ Page({
 
   resetData() {
     this.setData({
-      cards: [],
-      total: 0,
+      tags: [],
+      filteredTags: [],
+      topTags: [],
+      statusRows: this.formatStatusRows({}),
+      totalCards: 0,
+      donePercent: 0,
       loading: false,
     });
   },
 
   showError(error) {
     wx.showToast({
-      title: error.message || "操作失败",
+      title: error.message || "加载失败",
       icon: "none",
     });
   },

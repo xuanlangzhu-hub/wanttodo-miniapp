@@ -1,73 +1,118 @@
 <view class="page">
-  <view class="field">
-    <view class="label">标题</view>
-    <input
-      class="input"
-      placeholder="写一个便于查找的标题"
-      value="{{form.title}}"
-      data-field="title"
-      bindinput="onInput"
-    />
+  <view class="nav" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <view class="back-touch" bindtap="onBackTap">
+      <view class="back-icon"></view>
+    </view>
+    <view class="nav-title">{{mode === 'edit' ? '编辑卡片' : '新建卡片'}}</view>
+    <view class="nav-save" bindtap="onSaveTap">保存</view>
   </view>
 
-  <view class="field">
-    <view class="label">原文 / 摘录</view>
-    <textarea
-      class="textarea large"
-      placeholder="粘贴需要整理的材料"
-      value="{{form.sourceText}}"
-      data-field="sourceText"
-      bindinput="onInput"
-    ></textarea>
-  </view>
+  <view class="form-wrap" style="padding-top: {{contentTop}}px;">
+    <view class="form-card core-card">
+      <view class="section-head">
+        <view class="section-dot coral"></view>
+        <view class="section-title">核心内容</view>
+        <view class="section-subtitle">描述与内容是卡片的核心</view>
+      </view>
 
-  <view class="field">
-    <view class="label">摘要</view>
-    <textarea
-      class="textarea"
-      placeholder="整理后的简短摘要"
-      value="{{form.summary}}"
-      data-field="summary"
-      bindinput="onInput"
-    ></textarea>
-  </view>
+      <view class="field">
+        <view class="label-row">
+          <text class="label">标题</text>
+          <text class="counter">{{form.title.length}}/100</text>
+        </view>
+        <input
+          class="input"
+          maxlength="100"
+          placeholder="写一个便于查找的标题"
+          placeholder-class="placeholder"
+          value="{{form.title}}"
+          data-field="title"
+          bindinput="onInput"
+        />
+      </view>
 
-  <view class="field">
-    <view class="label">来源链接</view>
-    <input
-      class="input"
-      placeholder="可选"
-      value="{{form.sourceUrl}}"
-      data-field="sourceUrl"
-      bindinput="onInput"
-    />
-  </view>
+      <view class="field">
+        <view class="label-row">
+          <text class="label">内容</text>
+          <text class="counter">{{form.sourceText.length}}/5000</text>
+        </view>
+        <textarea
+          class="textarea large"
+          maxlength="5000"
+          placeholder="粘贴需要整理的材料"
+          placeholder-class="placeholder"
+          value="{{form.sourceText}}"
+          data-field="sourceText"
+          bindinput="onInput"
+        ></textarea>
+      </view>
 
-  <view class="field">
-    <view class="label">标签</view>
-    <input
-      class="input"
-      placeholder="用空格或逗号分隔"
-      value="{{form.tagsText}}"
-      data-field="tagsText"
-      bindinput="onInput"
-    />
-  </view>
+      <view class="field last">
+        <view class="label-row">
+          <text class="label">卡片摘要</text>
+          <text class="counter">{{form.summary.length}}/1000</text>
+        </view>
+        <textarea
+          class="textarea"
+          maxlength="1000"
+          placeholder="输入整理后的简洁摘要"
+          placeholder-class="placeholder"
+          value="{{form.summary}}"
+          data-field="summary"
+          bindinput="onInput"
+        ></textarea>
+      </view>
+    </view>
 
-  <view class="field">
-    <view class="label">状态</view>
-    <view class="status-row">
-      <view
-        wx:for="{{statusOptions}}"
-        wx:key="value"
-        class="status-option {{form.status === item.value ? 'active' : ''}}"
-        data-status="{{item.value}}"
-        bindtap="onStatusTap"
-      >
-        {{item.label}}
+    <view class="form-card">
+      <view class="section-head">
+        <view class="section-dot violet"></view>
+        <view class="section-title">附加信息</view>
+        <view class="section-subtitle">补充信息有助于管理卡片</view>
+      </view>
+
+      <view class="field">
+        <view class="label">标签</view>
+        <input
+          class="input"
+          placeholder="用空格或逗号分隔"
+          placeholder-class="placeholder"
+          value="{{form.tagsText}}"
+          data-field="tagsText"
+          bindinput="onInput"
+        />
+      </view>
+
+      <view class="field">
+        <view class="label">状态</view>
+        <view class="status-row">
+          <view
+            wx:for="{{statusOptions}}"
+            wx:key="value"
+            class="status-option {{form.status === item.value ? 'active' : ''}}"
+            data-status="{{item.value}}"
+            bindtap="onStatusTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <view class="field last">
+        <view class="label">来源链接</view>
+        <input
+          class="input"
+          placeholder="可选"
+          placeholder-class="placeholder"
+          value="{{form.sourceUrl}}"
+          data-field="sourceUrl"
+          bindinput="onInput"
+        />
       </view>
     </view>
   </view>
 
-  <button class="save-button" bindtap="onSaveTap">保存</button>
+  <view class="bottom-action">
+    <button class="save-button" bindtap="onSaveTap">保存</button>
+  </view>
 </view>

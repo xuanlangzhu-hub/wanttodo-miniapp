@@ -1,31 +1,98 @@
 <view class="page">
-  <view class="header">
-    <view class="eyebrow">继续整理</view>
-    <view class="title">待整理</view>
+  <view class="search-shell">
+    <view class="search-icon"></view>
+    <input
+      class="search-input"
+      placeholder="搜索标签或知识方向"
+      placeholder-class="placeholder"
+      value="{{keyword}}"
+      bindinput="onKeywordInput"
+      confirm-type="search"
+      bindconfirm="onSearchConfirm"
+    />
   </view>
 
-  <view class="summary">共 {{total}} 张</view>
-
-  <view wx:if="{{!loading && cards.length === 0}}" class="empty">
-    <view class="empty-title">暂无待整理卡片</view>
-    <view class="empty-text">点击底部加号添加新的学习记录。</view>
-  </view>
-
-  <view class="card-list">
-    <view wx:for="{{cards}}" wx:key="id" class="card-item" data-id="{{item.id}}" bindtap="onCardTap">
-      <view class="card-top">
-        <view class="card-title">{{item.title}}</view>
-        <view class="status todo">待整理</view>
-      </view>
-      <view wx:if="{{item.summary}}" class="card-summary">{{item.summary}}</view>
-      <view wx:elif="{{item.sourceText}}" class="card-summary">{{item.sourceText}}</view>
-      <view class="card-footer">
-        <text>{{item.updatedAtText}}</text>
-        <view class="card-actions">
-          <button class="text-button primary-link" catchtap="onOrganizeTap" data-id="{{item.id}}">去整理</button>
-          <button class="text-button" catchtap="onArchiveTap" data-id="{{item.id}}">归档</button>
+  <view class="hero-card">
+    <view class="hero-copy">
+      <view class="hero-title">知识体系</view>
+      <view class="hero-subtitle">按标签和整理状态找回你的 AI 学习内容</view>
+      <view class="hero-stats">
+        <view>
+          <text>{{topTags.length}}</text>
+          <view>个标签</view>
+        </view>
+        <view>
+          <text>{{totalCards}}</text>
+          <view>张卡片</view>
+        </view>
+        <view>
+          <text>{{donePercent}}%</text>
+          <view>已整理</view>
         </view>
       </view>
+    </view>
+    <view class="hero-art">
+      <view class="folder-icon">
+        <view class="folder-tab"></view>
+      </view>
+      <view class="orbit orbit-one"></view>
+      <view class="orbit orbit-two"></view>
+      <view class="mini-node node-tag"></view>
+      <view class="mini-node node-grid"></view>
+      <view class="mini-node node-link"></view>
+    </view>
+  </view>
+
+  <view class="section-head">
+    <view class="section-title">标签目录</view>
+    <view class="section-link" bindtap="onManageHintTap">按数量排序</view>
+  </view>
+
+  <view wx:if="{{!loading && filteredTags.length === 0}}" class="empty-card">
+    <view class="empty-title">{{loggedIn ? '暂无标签' : '登录后查看标签'}}</view>
+    <view class="empty-text">{{loggedIn ? '保存卡片时添加标签，这里会自动形成目录。' : '登录后会显示你的知识体系。'}}</view>
+  </view>
+
+  <view class="tag-grid" wx:else>
+    <view
+      wx:for="{{filteredTags}}"
+      wx:key="name"
+      class="tag-card"
+      data-tag="{{item.name}}"
+      bindtap="onTagTap"
+    >
+      <view class="tag-icon">{{item.initial}}</view>
+      <view class="tag-main">
+        <view class="tag-name">{{item.name}}</view>
+        <view class="tag-count">{{item.count}} 张卡片</view>
+      </view>
+      <view class="tag-percent">{{item.percent}}%</view>
+      <view class="progress-track">
+        <view class="progress-fill" style="width: {{item.percent}}%;"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-head compact">
+    <view class="section-title">整理状态</view>
+  </view>
+
+  <view class="status-card">
+    <view
+      wx:for="{{statusRows}}"
+      wx:key="value"
+      class="status-row"
+      data-status="{{item.value}}"
+      bindtap="onStatusTap"
+    >
+      <view class="status-left">
+        <view class="status-dot {{item.value}}"></view>
+        <text>{{item.label}}</text>
+      </view>
+      <view class="status-bar">
+        <view class="status-fill" style="width: {{item.percent}}%;"></view>
+      </view>
+      <view class="status-count">{{item.count}}</view>
     </view>
   </view>
 

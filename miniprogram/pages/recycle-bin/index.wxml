@@ -1,43 +1,73 @@
 <view class="page">
-  <view class="header">
-    <view>
-      <view class="eyebrow">已移除</view>
-      <view class="title">回收站</view>
+  <view class="nav" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <view class="back-touch" bindtap="onBackTap">
+      <view class="back-icon"></view>
     </view>
+    <view class="nav-title">回收站</view>
+    <view class="nav-spacer"></view>
   </view>
 
-  <view class="search-box">
-    <input
-      class="search-input"
-      placeholder="搜索已移除卡片"
-      value="{{keyword}}"
-      bindinput="onKeywordInput"
-      confirm-type="search"
-      bindconfirm="onSearchConfirm"
-    />
-    <button class="search-button" bindtap="onSearchConfirm">搜索</button>
-  </view>
+  <view class="content-wrap" style="padding-top: {{contentTop}}px;">
+    <view class="tip-row">
+      <view class="tip-icon">!</view>
+      <text>回收站中的卡片可恢复，也可以彻底删除</text>
+    </view>
 
-  <view class="summary">共 {{total}} 张</view>
+    <view class="search-shell">
+      <view class="search-icon"></view>
+      <input
+        class="search-input"
+        placeholder="搜索已删除卡片"
+        placeholder-class="placeholder"
+        value="{{keyword}}"
+        bindinput="onKeywordInput"
+        confirm-type="search"
+        bindconfirm="onSearchConfirm"
+      />
+    </view>
 
-  <view wx:if="{{!loading && cards.length === 0}}" class="empty">
-    <view class="empty-title">回收站为空</view>
-    <view class="empty-text">移入回收站的卡片会显示在这里。</view>
-  </view>
-
-  <view class="card-list">
-    <view wx:for="{{cards}}" wx:key="id" class="card-item">
-      <view class="card-top">
-        <view class="card-title">{{item.title}}</view>
-        <view class="status archived">已移除</view>
+    <view class="summary-row">
+      <text>共 {{total}} 张</text>
+      <view class="sort-button" bindtap="onSortTap">
+        <text>{{order === 'desc' ? '按删除时间' : '按删除时间'}}</text>
+        <view class="sort-icon {{order}}"></view>
       </view>
-      <view wx:if="{{item.summary}}" class="card-summary">{{item.summary}}</view>
-      <view wx:elif="{{item.sourceText}}" class="card-summary">{{item.sourceText}}</view>
-      <view class="card-footer">
-        <text>{{item.deletedAtText}}</text>
+    </view>
+
+    <view wx:if="{{!loading && cards.length === 0}}" class="empty-card">
+      <view class="empty-trash">
+        <view class="empty-lid"></view>
+        <view class="empty-body"></view>
+      </view>
+      <view class="empty-title">暂无删除内容</view>
+      <view class="empty-text">{{loggedIn ? '被删除的卡片会显示在这里' : '登录后查看回收站'}}</view>
+    </view>
+
+    <view class="card-list" wx:else>
+      <view wx:for="{{cards}}" wx:key="id" class="card-item">
+        <view class="card-head">
+          <view class="status {{item.status}}">
+            <view class="status-dot"></view>
+            <text>{{item.statusText}}</text>
+          </view>
+          <view class="trash-small">
+            <view class="trash-lid"></view>
+            <view class="trash-body"></view>
+          </view>
+        </view>
+
+        <view class="card-title">{{item.title}}</view>
+        <view wx:if="{{item.summary}}" class="card-summary">{{item.summary}}</view>
+        <view wx:elif="{{item.sourceText}}" class="card-summary">{{item.sourceText}}</view>
+
+        <view class="deleted-time">
+          <view class="clock-icon"></view>
+          <text>删除于 {{item.deletedAtText}}</text>
+        </view>
+
         <view class="card-actions">
-          <button class="text-button primary-link" catchtap="onRestoreTap" data-id="{{item.id}}">恢复</button>
-          <button class="text-button danger-link" catchtap="onPermanentDeleteTap" data-id="{{item.id}}">彻底删除</button>
+          <view class="restore-button action-button" catchtap="onRestoreTap" data-id="{{item.id}}">恢复</view>
+          <view class="delete-button action-button" catchtap="onPermanentDeleteTap" data-id="{{item.id}}">彻底删除</view>
         </view>
       </view>
     </view>
