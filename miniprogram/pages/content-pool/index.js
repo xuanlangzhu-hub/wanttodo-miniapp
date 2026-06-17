@@ -31,6 +31,9 @@ Page({
     if (options.status) {
       this.setData({ status: options.status });
     }
+    if (options.keyword) {
+      this.setData({ keyword: decodeURIComponent(options.keyword) });
+    }
   },
 
   onShow() {

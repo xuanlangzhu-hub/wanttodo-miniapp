@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "内容池",
+  "navigationStyle": "custom",
   "enablePullDownRefresh": true,
   "usingComponents": {
     "bottom-nav": "/components/bottom-nav/index"
