@@ -26,6 +26,7 @@ Page({
   data: {
     statusTabs: STATUS_TABS,
     status: "all",
+    searchKeyword: "",
     cards: [],
     recentCards: [],
     pendingCards: [],
@@ -35,6 +36,9 @@ Page({
       archivedCount: 0,
       deletedCount: 0,
     },
+    displayTotalCount: 0,
+    displayTodoCount: 0,
+    displayDoneRate: 0,
     topTags: [],
     total: 0,
     page: 1,
@@ -102,6 +106,40 @@ Page({
     wx.navigateTo({
       url: "/pages/card-form/index",
     });
+  },
+
+  onHeroActionTap() {
+    if (!this.data.loggedIn) {
+      this.onLoginTap();
+      return;
+    }
+
+    this.onCreateTap();
+  },
+
+  onSearchInput(event) {
+    this.setData({ searchKeyword: event.detail.value || "" });
+  },
+
+  onSearchConfirm() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    const keyword = encodeURIComponent((this.data.searchKeyword || "").trim());
+    wx.navigateTo({
+      url: keyword
+        ? `/pages/content-pool/index?keyword=${keyword}`
+        : "/pages/content-pool/index",
+    });
+  },
+
+  onViewAllTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    wx.navigateTo({ url: "/pages/content-pool/index" });
   },
 
   onCardTap(event) {
@@ -215,6 +253,7 @@ Page({
         pendingCards,
         topTags: (overview && overview.topTags) || [],
       });
+      this.animateOverview();
     } catch (error) {
       if (error.statusCode === 401) {
         getApp().clearAuth();
@@ -225,6 +264,9 @@ Page({
           recentCards: [],
           pendingCards: [],
           total: 0,
+          displayTotalCount: 0,
+          displayTodoCount: 0,
+          displayDoneRate: 0,
         });
       }
       this.showError(error);
@@ -254,6 +296,42 @@ Page({
       statusText: STATUS_TEXT[card.status] || card.status || "",
       updatedAtText: this.formatTime(card.updatedAt),
     }));
+  },
+
+  animateOverview() {
+    const overview = this.data.overview || {};
+    const totalCount = (overview.todoCount || 0) + (overview.doneCount || 0) + (overview.archivedCount || 0);
+    const doneRate = totalCount ? Math.round(((overview.doneCount || 0) / totalCount) * 100) : 0;
+    const todoCount = overview.todoCount || 0;
+    const steps = 18;
+    let currentStep = 0;
+
+    if (this.overviewTimer) {
+      clearInterval(this.overviewTimer);
+    }
+
+    this.setData({
+      displayTotalCount: 0,
+      displayTodoCount: 0,
+      displayDoneRate: 0,
+    });
+
+    this.overviewTimer = setInterval(() => {
+      currentStep += 1;
+      const progress = Math.min(currentStep / steps, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      this.setData({
+        displayTotalCount: Math.round(totalCount * eased),
+        displayTodoCount: Math.round(todoCount * eased),
+        displayDoneRate: Math.round(doneRate * eased),
+      });
+
+      if (progress >= 1) {
+        clearInterval(this.overviewTimer);
+        this.overviewTimer = null;
+      }
+    }, 45);
   },
 
   formatTime(value) {

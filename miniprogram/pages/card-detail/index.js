@@ -6,15 +6,27 @@ const STATUS_TEXT = {
   archived: "已归档",
 };
 
+const COPY_HOLD_MS = 2000;
+const TOUCH_MOVE_CANCEL_DISTANCE = 12;
+
 Page({
+  copyTimer: null,
+  copyTriggered: false,
+  touchStartPoint: null,
+
   data: {
     id: "",
     card: null,
+    loading: false,
     loggedIn: false,
     statusText: "",
+    navTop: 0,
+    navHeight: 44,
+    contentTop: 92,
   },
 
-  onLoad(options) {
+  onLoad(options = {}) {
+    this.setNavMetrics();
     this.syncAuthState();
     this.setData({ id: options.id || "" });
   },
@@ -32,23 +44,59 @@ Page({
     }
   },
 
+  onUnload() {
+    this.clearCopyTimer();
+  },
+
+  setNavMetrics() {
+    const systemInfo = wx.getSystemInfoSync();
+    const menuButton = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
+    const statusBarHeight = systemInfo.statusBarHeight || 0;
+    const navHeight = menuButton ? menuButton.height + (menuButton.top - statusBarHeight) * 2 : 44;
+
+    this.setData({
+      navTop: statusBarHeight,
+      navHeight,
+      contentTop: statusBarHeight + navHeight + 24,
+    });
+  },
+
   async loadCard() {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
+    this.setData({ loading: true });
     try {
       const card = await cardApi.getCard(this.data.id);
+      const formattedCard = this.formatCard(card);
+
       this.setData({
-        card: Object.assign({}, card, {
-          createdAtText: this.formatTime(card.createdAt),
-          updatedAtText: this.formatTime(card.updatedAt),
-        }),
-        statusText: STATUS_TEXT[card.status] || card.status || "",
+        card: formattedCard,
+        statusText: STATUS_TEXT[formattedCard.status] || formattedCard.status || "",
       });
     } catch (error) {
       this.showError(error);
+    } finally {
+      this.setData({ loading: false });
     }
+  },
+
+  formatCard(card = {}) {
+    return Object.assign({}, card, {
+      bodyText: card.sourceText || card.content || "",
+      createdAtText: this.formatTime(card.createdAt),
+      updatedAtText: this.formatTime(card.updatedAt),
+    });
+  },
+
+  onBackTap() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+      return;
+    }
+
+    wx.redirectTo({ url: "/pages/content-pool/index" });
   },
 
   onEditTap() {
@@ -61,62 +109,90 @@ Page({
     });
   },
 
-  onOrganizeTap() {
-    this.onEditTap();
-  },
-
-  async onArchiveTap() {
-    if (!this.ensureLoggedIn()) {
+  onReaderTouchStart(event) {
+    if (!this.data.card) {
       return;
     }
 
-    try {
-      await cardApi.archiveCard(this.data.id);
-      wx.showToast({ title: "已归档", icon: "success" });
-      this.loadCard();
-    } catch (error) {
-      this.showError(error);
-    }
+    const touch = event.touches && event.touches[0];
+    this.copyTriggered = false;
+    this.touchStartPoint = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    this.clearCopyTimer();
+    this.copyTimer = setTimeout(() => {
+      this.copyTimer = null;
+      this.copyTriggered = true;
+      this.copyContent();
+    }, COPY_HOLD_MS);
   },
 
-  async onRestoreTap() {
-    if (!this.ensureLoggedIn()) {
+  onReaderTouchMove(event) {
+    if (!this.touchStartPoint || !this.copyTimer) {
       return;
     }
 
-    try {
-      await cardApi.updateCard(this.data.id, { status: "todo" });
-      wx.showToast({ title: "已恢复", icon: "success" });
-      this.loadCard();
-    } catch (error) {
-      this.showError(error);
-    }
-  },
-
-  onDeleteTap() {
-    if (!this.ensureLoggedIn()) {
+    const touch = event.touches && event.touches[0];
+    if (!touch) {
       return;
     }
 
-    wx.showModal({
-      title: "移入回收站",
-      content: "确定把这张卡片移入回收站吗？",
-      confirmText: "移除",
-      confirmColor: "#ff7966",
-      success: async (result) => {
-        if (!result.confirm) {
-          return;
-        }
+    const distanceX = Math.abs(touch.clientX - this.touchStartPoint.x);
+    const distanceY = Math.abs(touch.clientY - this.touchStartPoint.y);
+    if (distanceX > TOUCH_MOVE_CANCEL_DISTANCE || distanceY > TOUCH_MOVE_CANCEL_DISTANCE) {
+      this.clearCopyTimer();
+    }
+  },
 
-        try {
-          await cardApi.deleteCard(this.data.id);
-          wx.showToast({ title: "已移入回收站", icon: "success" });
-          setTimeout(() => wx.navigateBack(), 350);
-        } catch (error) {
-          this.showError(error);
-        }
+  onReaderTouchEnd() {
+    if (!this.copyTriggered) {
+      this.clearCopyTimer();
+    }
+    this.touchStartPoint = null;
+  },
+
+  onReaderTouchCancel() {
+    this.clearCopyTimer();
+    this.touchStartPoint = null;
+  },
+
+  clearCopyTimer() {
+    if (this.copyTimer) {
+      clearTimeout(this.copyTimer);
+      this.copyTimer = null;
+    }
+  },
+
+  copyContent() {
+    if (!this.data.card) {
+      return;
+    }
+
+    wx.setClipboardData({
+      data: this.buildCopyText(this.data.card),
+      success: () => {
+        wx.showToast({ title: "已复制卡片内容", icon: "success" });
       },
     });
+  },
+
+  buildCopyText(card) {
+    const lines = [
+      card.title || "",
+      card.summary || card.bodyText || "",
+    ];
+
+    if (card.summary && card.bodyText) {
+      lines.push(card.bodyText);
+    }
+
+    if (card.tags && card.tags.length) {
+      lines.push(`标签：${card.tags.map((tag) => `#${tag}`).join(" ")}`);
+    }
+
+    if (card.sourceUrl) {
+      lines.push(`来源链接：${card.sourceUrl}`);
+    }
+
+    return lines.filter(Boolean).join("\n\n");
   },
 
   syncAuthState() {

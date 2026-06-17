@@ -1,23 +1,42 @@
 <view class="nav-shell">
-  <image class="nav-bg" src="/images/nav/bg.png" mode="widthFix"></image>
-  <view class="nav-items">
-    <view class="nav-item" data-key="home" bindtap="onNavTap">
-      <image wx:if="{{active === 'home'}}" class="nav-icon" src="/images/nav/home-active.png" mode="widthFix"></image>
-      <image wx:else class="nav-icon" src="/images/nav/home.png" mode="widthFix"></image>
+  <view class="nav-panel">
+    <view class="nav-item {{active === 'home' ? 'active' : ''}}" data-key="home" bindtap="onNavTap">
+      <view class="nav-icon home-icon">
+        <view class="home-roof"></view>
+        <view class="home-body"></view>
+      </view>
+      <view class="nav-label">首页</view>
     </view>
-    <view class="nav-item" data-key="pool" bindtap="onNavTap">
-      <image wx:if="{{active === 'pool'}}" class="nav-icon" src="/images/nav/pool-active.png" mode="widthFix"></image>
-      <image wx:else class="nav-icon" src="/images/nav/pool.png" mode="widthFix"></image>
+
+    <view class="nav-item {{active === 'pool' ? 'active' : ''}}" data-key="pool" bindtap="onNavTap">
+      <view class="nav-icon card-icon">
+        <view class="card-line"></view>
+        <view class="card-line short"></view>
+      </view>
+      <view class="nav-label">卡片</view>
     </view>
-    <view class="nav-spacer"></view>
-    <view class="nav-item" data-key="pending" bindtap="onNavTap">
-      <image wx:if="{{active === 'pending'}}" class="nav-icon" src="/images/nav/pending-active.png" mode="widthFix"></image>
-      <image wx:else class="nav-icon" src="/images/nav/pending.png" mode="widthFix"></image>
+
+    <view class="nav-create" bindtap="onCreateTap">
+      <view class="create-button">+</view>
+      <view class="nav-label create-label">新建</view>
     </view>
-    <view class="nav-item" data-key="me" bindtap="onNavTap">
-      <image wx:if="{{active === 'me'}}" class="nav-icon" src="/images/nav/me-active.png" mode="widthFix"></image>
-      <image wx:else class="nav-icon" src="/images/nav/me.png" mode="widthFix"></image>
+
+    <view class="nav-item {{active === 'pending' ? 'active' : ''}}" data-key="pending" bindtap="onNavTap">
+      <view class="nav-icon grid-icon">
+        <view></view>
+        <view></view>
+        <view></view>
+        <view></view>
+      </view>
+      <view class="nav-label">分类</view>
+    </view>
+
+    <view class="nav-item {{active === 'me' ? 'active' : ''}}" data-key="me" bindtap="onNavTap">
+      <view class="nav-icon user-icon">
+        <view class="user-head"></view>
+        <view class="user-body"></view>
+      </view>
+      <view class="nav-label">我的</view>
     </view>
   </view>
-  <image class="nav-cta" src="/images/nav/cta.png" mode="widthFix" bindtap="onCreateTap"></image>
 </view>
