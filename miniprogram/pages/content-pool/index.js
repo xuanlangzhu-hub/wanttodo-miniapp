@@ -34,6 +34,9 @@ Page({
     if (options.keyword) {
       this.setData({ keyword: decodeURIComponent(options.keyword) });
     }
+    if (options.tag) {
+      this.setData({ selectedTag: decodeURIComponent(options.tag) });
+    }
   },
 
   onShow() {

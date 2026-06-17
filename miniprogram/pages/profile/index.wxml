@@ -1,45 +1,96 @@
 <view class="page">
-  <view class="profile-head">
-    <view class="profile-avatar">
-      <image wx:if="{{userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <text wx:else>{{avatarText}}</text>
+  <view class="profile-hero">
+    <view class="avatar-wrap">
+      <view class="profile-avatar">
+        <image wx:if="{{userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{avatarText}}</text>
+      </view>
     </view>
-    <view>
-      <view class="profile-name">{{userInfo.nickname || '未登录'}}</view>
-      <view class="profile-subtitle">学习记录</view>
-    </view>
-  </view>
-
-  <view class="stats-grid">
-    <view class="stat-card">
-      <view class="stat-value">{{total}}</view>
-      <view class="stat-label">全部卡片</view>
-    </view>
-    <view class="stat-card">
-      <view class="stat-value">{{pending}}</view>
-      <view class="stat-label">待整理</view>
-    </view>
-    <view class="stat-card">
-      <view class="stat-value">{{done}}</view>
-      <view class="stat-label">已整理</view>
-    </view>
-    <view class="stat-card">
-      <view class="stat-value">{{archived}}</view>
-      <view class="stat-label">已归档</view>
+    <view class="profile-name">{{userInfo.nickname || '未登录'}}</view>
+    <view class="profile-subtitle">构建自己的 AI 知识体系</view>
+    <view class="study-badge">
+      <view class="badge-dot"></view>
+      <text>{{loggedIn ? '学习记录已同步' : '登录后同步学习记录'}}</text>
     </view>
   </view>
 
-  <view class="settings">
-    <view class="setting-row" bindtap="onRecycleTap">
+  <view class="summary-card">
+    <view class="summary-item" bindtap="onPoolTap">
+      <view class="summary-icon card-icon"></view>
+      <view>
+        <view class="summary-value">{{total}}</view>
+        <view class="summary-label">卡片</view>
+      </view>
+    </view>
+    <view class="summary-divider"></view>
+    <view class="summary-item" bindtap="onCategoryTap">
+      <view class="summary-icon grid-icon">
+        <view></view>
+        <view></view>
+        <view></view>
+        <view></view>
+      </view>
+      <view>
+        <view class="summary-value">{{tagCount}}</view>
+        <view class="summary-label">标签</view>
+      </view>
+    </view>
+    <view class="summary-divider"></view>
+    <view class="summary-item" bindtap="onStatusTap" data-status="done">
+      <view class="summary-icon check-icon"></view>
+      <view>
+        <view class="summary-value">{{done}}</view>
+        <view class="summary-label">已整理</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="status-card">
+    <view class="card-title">学习状态</view>
+    <view class="status-grid">
+      <view class="status-item" bindtap="onStatusTap" data-status="todo">
+        <view class="status-number">{{pending}}</view>
+        <view class="status-label">待整理</view>
+      </view>
+      <view class="status-item" bindtap="onStatusTap" data-status="done">
+        <view class="status-number">{{done}}</view>
+        <view class="status-label">已整理</view>
+      </view>
+      <view class="status-item" bindtap="onStatusTap" data-status="archived">
+        <view class="status-number">{{archived}}</view>
+        <view class="status-label">已归档</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="menu-card">
+    <view class="menu-row" bindtap="onPoolTap">
+      <view class="menu-icon pool-icon"></view>
+      <text>内容池</text>
+      <view class="chevron"></view>
+    </view>
+    <view class="menu-row" bindtap="onCategoryTap">
+      <view class="menu-icon tag-icon"></view>
+      <text>标签目录</text>
+      <view class="chevron"></view>
+    </view>
+    <view class="menu-row" bindtap="onRecycleTap">
+      <view class="menu-icon recycle-icon"></view>
       <text>回收站</text>
-      <text>{{deleted}} 张</text>
+      <view class="menu-meta">{{deleted}} 张</view>
+      <view class="chevron"></view>
     </view>
-    <view class="setting-row">
-      <text>当前版本</text>
-      <text>v2 知识卡片</text>
-    </view>
-    <button class="logout-button" bindtap="onAuthButtonTap">{{loggedIn ? '退出登录' : '登录'}}</button>
   </view>
+
+  <view class="menu-card quiet">
+    <view class="menu-row static">
+      <view class="menu-icon info-icon"></view>
+      <text>当前版本</text>
+      <view class="menu-meta">v2 知识卡片</view>
+    </view>
+  </view>
+
+  <button class="auth-button" bindtap="onAuthButtonTap">{{loggedIn ? '退出登录' : '登录'}}</button>
 
   <bottom-nav active="me"></bottom-nav>
 </view>

@@ -19,6 +19,7 @@ Page({
     done: 0,
     archived: 0,
     deleted: 0,
+    tagCount: 0,
   },
 
   onShow() {
@@ -46,13 +47,17 @@ Page({
     }
 
     try {
-      const overview = await cardApi.getOverview();
+      const [overview, tags] = await Promise.all([
+        cardApi.getOverview(),
+        cardApi.getTags(),
+      ]);
       this.setData({
         total: (overview.todoCount || 0) + (overview.doneCount || 0) + (overview.archivedCount || 0),
         pending: overview.todoCount || 0,
         done: overview.doneCount || 0,
         archived: overview.archivedCount || 0,
         deleted: overview.deletedCount || 0,
+        tagCount: (tags || []).length,
       });
     } catch (error) {
       wx.showToast({
@@ -68,6 +73,32 @@ Page({
     }
 
     wx.navigateTo({ url: "/pages/recycle-bin/index" });
+  },
+
+  onPoolTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    wx.redirectTo({ url: "/pages/content-pool/index" });
+  },
+
+  onCategoryTap() {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    wx.redirectTo({ url: "/pages/pending/index" });
+  },
+
+  onStatusTap(event) {
+    if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    wx.redirectTo({
+      url: `/pages/content-pool/index?status=${event.currentTarget.dataset.status}`,
+    });
   },
 
   async onLoginTap() {
@@ -132,6 +163,7 @@ Page({
       done: 0,
       archived: 0,
       deleted: 0,
+      tagCount: 0,
     });
   },
 

@@ -1,13 +1,27 @@
 const cardApi = require("../../services/cards");
 
+const STATUS_TEXT = {
+  todo: "待整理",
+  done: "已整理",
+  archived: "已归档",
+};
+
 Page({
   data: {
     cards: [],
     keyword: "",
     loading: false,
     loggedIn: false,
+    navTop: 0,
+    navHeight: 44,
+    contentTop: 92,
+    order: "desc",
     pageSize: 20,
     total: 0,
+  },
+
+  onLoad() {
+    this.setNavMetrics();
   },
 
   onShow() {
@@ -39,6 +53,24 @@ Page({
     }
 
     this.loadCards(true);
+  },
+
+  onBackTap() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+      return;
+    }
+
+    wx.redirectTo({ url: "/pages/profile/index" });
+  },
+
+  onSortTap() {
+    this.setData({
+      order: this.data.order === "desc" ? "asc" : "desc",
+    });
+    if (this.ensureLoggedIn(false)) {
+      this.loadCards(true);
+    }
   },
 
   async onRestoreTap(event) {
@@ -94,12 +126,14 @@ Page({
         page: 1,
         pageSize: this.data.pageSize,
         keyword: this.data.keyword,
+        order: this.data.order,
         showLoading,
       });
 
       this.setData({
         cards: (result.list || []).map((card) => Object.assign({}, card, {
           deletedAtText: this.formatTime(card.deletedAt || card.updatedAt),
+          statusText: STATUS_TEXT[card.status] || card.status || "",
         })),
         total: result.total || 0,
       });
@@ -113,6 +147,19 @@ Page({
   syncAuthState() {
     const app = getApp();
     this.setData({ loggedIn: Boolean(app.globalData.token) });
+  },
+
+  setNavMetrics() {
+    const systemInfo = wx.getSystemInfoSync();
+    const menuButton = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
+    const statusBarHeight = systemInfo.statusBarHeight || 0;
+    const navHeight = menuButton ? menuButton.height + (menuButton.top - statusBarHeight) * 2 : 44;
+
+    this.setData({
+      navTop: statusBarHeight,
+      navHeight,
+      contentTop: statusBarHeight + navHeight + 32,
+    });
   },
 
   ensureLoggedIn(showTip = true) {

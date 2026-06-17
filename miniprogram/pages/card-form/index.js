@@ -17,6 +17,9 @@ Page({
     id: "",
     loggedIn: false,
     mode: "create",
+    navTop: 0,
+    navHeight: 44,
+    contentTop: 92,
     statusOptions: STATUS_OPTIONS,
     form: {
       title: "",
@@ -29,6 +32,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.setNavMetrics();
     this.syncAuthState();
     if (!this.data.loggedIn) {
       wx.showToast({ title: "请先登录", icon: "none" });
@@ -43,6 +47,28 @@ Page({
       wx.setNavigationBarTitle({ title: "编辑卡片" });
       this.loadCard(options.id);
     }
+  },
+
+  setNavMetrics() {
+    const systemInfo = wx.getSystemInfoSync();
+    const menuButton = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
+    const statusBarHeight = systemInfo.statusBarHeight || 0;
+    const navHeight = menuButton ? menuButton.height + (menuButton.top - statusBarHeight) * 2 : 44;
+
+    this.setData({
+      navTop: statusBarHeight,
+      navHeight,
+      contentTop: statusBarHeight + navHeight + 24,
+    });
+  },
+
+  onBackTap() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+      return;
+    }
+
+    wx.redirectTo({ url: "/pages/index/index" });
   },
 
   async loadCard(id) {
