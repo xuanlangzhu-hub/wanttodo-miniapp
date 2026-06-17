@@ -1,6 +1,6 @@
-# API 接口约定 v0.3
+# API 接口约定 v0.4
 
-> **状态：已确认** | 微信小程序前端（Codex）↔ ASP.NET 后端（Claude）
+> **状态：已确认** | 微信小程序前端（Codex）↔ ASP.NET 后端（DeepSeek）
 
 ---
 
@@ -276,6 +276,64 @@ POST /cards
 
 ---
 
+### 4.3.1 智能整理卡片草稿
+
+```
+POST /cards/organize
+```
+
+用途：根据用户粘贴的学习材料，返回可编辑的卡片草稿建议。
+
+请求：
+
+```json
+{
+  "sourceText": "用户粘贴的学习材料",
+  "sourceUrl": "https://example.com/article"
+}
+```
+
+字段说明：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| sourceText | string | 是 | 需要整理的学习材料 |
+| sourceUrl | string | 否 | 来源链接，可为空 |
+
+规则：
+
+- 该接口只返回建议，不创建卡片
+- 前端拿到结果后填充新建 / 编辑表单
+- 用户确认后仍调用 `POST /cards` 保存
+- 标签建议优先从预设标签中选择
+- 不抓取公共内容，不生成公共信息流
+
+成功响应：`HTTP 200`
+
+```json
+{
+  "code": 200,
+  "data": {
+    "title": "RAG 检索增强生成",
+    "summary": "RAG 将外部知识检索与模型生成结合，用于提升回答的准确性和可追溯性。",
+    "tags": ["RAG知识", "模型基础"],
+    "status": "todo"
+  }
+}
+```
+
+失败响应：`HTTP 400`
+
+```json
+{
+  "code": 400,
+  "message": "sourceText 不能为空",
+  "data": null
+}
+```
+
+---
+
 ### 4.4 更新卡片
 
 ```
@@ -381,6 +439,48 @@ DELETE /cards/{id}
 
 ---
 
+### 4.7 获取搜索联想
+
+```
+GET /cards/suggestions?keyword=rag
+```
+
+用途：搜索输入时返回关键词、标签和卡片标题联想。
+
+参数：
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| keyword | string | 是 | 无 | 搜索关键词 |
+| limit | int | 否 | 8 | 每类最多返回数量 |
+
+规则：
+
+- 只返回当前登录用户自己的数据
+- 默认排除 `deletedAt != null` 的卡片
+- 第一版可使用数据库模糊匹配，不要求 AI
+- `keyword` 为空时返回空数组
+
+成功响应：`HTTP 200`
+
+```json
+{
+  "code": 200,
+  "data": {
+    "keywords": ["RAG", "检索增强"],
+    "tags": ["RAG知识"],
+    "cards": [
+      {
+        "id": "card_a1b2c3",
+        "title": "RAG 检索增强生成"
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## 5. 回收站接口
 
 ### 5.1 获取回收站列表
@@ -474,7 +574,46 @@ DELETE /cards/{id}/permanent
 
 ## 6. 标签接口
 
-### 6.1 获取标签汇总
+### 6.1 获取预设标签
+
+```
+GET /tags/presets
+```
+
+用途：返回最终版固定标签体系，供新建 / 编辑页选择。
+
+规则：
+
+- 标签列表应保持稳定
+- 前端允许多选
+- 卡片保存时仍提交 `tags: string[]`
+- 如果后端暂不实现，前端可以先使用本地常量
+
+成功响应：`HTTP 200`
+
+```json
+{
+  "code": 200,
+  "data": [
+    "AI概念",
+    "提示词工程",
+    "RAG知识",
+    "模型基础",
+    "Agent",
+    "多模态",
+    "向量数据库",
+    "工具使用",
+    "编程学习",
+    "产品思考",
+    "学习方法",
+    "读书笔记"
+  ]
+}
+```
+
+---
+
+### 6.2 获取标签汇总
 
 ```
 GET /cards/tags
@@ -577,7 +716,7 @@ GET /user/profile
 
 ---
 
-## 10. 第二版接口清单
+## 10. 最终版接口清单
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -585,16 +724,19 @@ GET /user/profile
 | GET | `/cards` | 卡片列表，支持搜索、状态、标签、排序、分页 |
 | GET | `/cards/{id}` | 卡片详情 |
 | POST | `/cards` | 创建卡片 |
+| POST | `/cards/organize` | 智能整理卡片草稿 |
 | PATCH | `/cards/{id}` | 更新卡片 |
 | PATCH | `/cards/{id}/archive` | 归档卡片 |
 | DELETE | `/cards/{id}` | 软删除卡片 |
 | GET | `/cards/deleted` | 回收站列表 |
 | PATCH | `/cards/{id}/restore` | 恢复卡片 |
 | DELETE | `/cards/{id}/permanent` | 彻底删除卡片 |
+| GET | `/cards/suggestions` | 搜索联想 |
+| GET | `/tags/presets` | 预设标签 |
 | GET | `/cards/tags` | 标签汇总 |
 | GET | `/cards/overview` | 工作台概览 |
 | GET | `/user/profile` | 用户信息 |
 
 ---
 
-> 本文档即为开发契约 v0.3。后续新增能力前，先更新产品契约，再同步接口契约。
+> 本文档即为开发契约 v0.4。后续新增能力前，先更新产品契约，再同步接口契约。
