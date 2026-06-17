@@ -55,34 +55,36 @@ public class CardsController : ControllerBase
             _ => query
         };
 
+        var cards = await query.ToListAsync();
+
         // 关键词搜索（标题/摘要/原文/标签）
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            query = query.Where(c =>
-                c.Title.Contains(keyword) ||
-                c.Summary.Contains(keyword) ||
-                c.SourceText.Contains(keyword) ||
-                c.TagsJson.Contains(keyword));
+            cards = cards.Where(c =>
+                TextContains(c.Title, keyword) ||
+                TextContains(c.Summary, keyword) ||
+                TextContains(c.SourceText, keyword) ||
+                c.GetTags().Any(t => TextContains(t, keyword))).ToList();
         }
 
-        // 按标签筛选
+        // 按标签筛选。TagsJson 中中文可能被 JSON 转义，必须反序列化后匹配。
         if (!string.IsNullOrWhiteSpace(tag))
         {
-            query = query.Where(c => c.TagsJson.Contains(tag));
+            cards = cards.Where(c =>
+                c.GetTags().Any(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase))).ToList();
         }
 
-        // 排序
-        query = (sort, order) switch
+        cards = (sort, order) switch
         {
-            ("createdAt", "asc") => query.OrderBy(c => c.CreatedAt),
-            ("createdAt", "desc") => query.OrderByDescending(c => c.CreatedAt),
-            ("updatedAt", "asc") => query.OrderBy(c => c.UpdatedAt),
-            _ => query.OrderByDescending(c => c.UpdatedAt)
+            ("createdAt", "asc") => cards.OrderBy(c => c.CreatedAt).ToList(),
+            ("createdAt", "desc") => cards.OrderByDescending(c => c.CreatedAt).ToList(),
+            ("updatedAt", "asc") => cards.OrderBy(c => c.UpdatedAt).ToList(),
+            _ => cards.OrderByDescending(c => c.UpdatedAt).ToList()
         };
 
-        var total = await query.CountAsync();
-        var cards = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var list = cards.Select(MapToResponse).ToList();
+        var total = cards.Count;
+        var pageCards = cards.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        var list = pageCards.Select(MapToResponse).ToList();
 
         return Ok(ApiResponse<object>.Ok(new { list, total, page, pageSize }));
     }
@@ -485,6 +487,9 @@ public class CardsController : ControllerBase
     // ═══════════════════════════════════════════
     // 辅助：卡片 → API 响应对象
     // ═══════════════════════════════════════════
+    private static bool TextContains(string? source, string keyword) =>
+        !string.IsNullOrEmpty(source) && source.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
     private static object MapToResponse(KnowledgeCard c) => new
     {
         c.Id,
