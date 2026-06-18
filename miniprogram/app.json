@@ -6,7 +6,8 @@
     "pages/profile/index",
     "pages/card-form/index",
     "pages/card-detail/index",
-    "pages/recycle-bin/index"
+    "pages/recycle-bin/index",
+    "pages/privacy-policy/index"
   ],
   "window": {
     "backgroundColor": "#0E0E12",

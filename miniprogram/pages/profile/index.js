@@ -111,6 +111,10 @@ Page({
     });
   },
 
+  onPrivacyTap() {
+    wx.navigateTo({ url: "/pages/privacy-policy/index" });
+  },
+
   async onLoginTap() {
     if (this.data.loggingIn) {
       return;

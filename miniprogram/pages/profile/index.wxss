@@ -329,6 +329,35 @@ page {
   top: 2rpx;
 }
 
+.privacy-icon {
+  border: 4rpx solid #46d5c4;
+  border-radius: 10rpx;
+  box-sizing: border-box;
+}
+
+.privacy-icon::before {
+  border: 4rpx solid #46d5c4;
+  border-bottom: 0;
+  border-radius: 14rpx 14rpx 0 0;
+  content: "";
+  height: 16rpx;
+  left: 8rpx;
+  position: absolute;
+  top: -10rpx;
+  width: 18rpx;
+}
+
+.privacy-icon::after {
+  background: #46d5c4;
+  border-radius: 50%;
+  content: "";
+  height: 8rpx;
+  left: 13rpx;
+  position: absolute;
+  top: 16rpx;
+  width: 8rpx;
+}
+
 .menu-row text {
   flex: 1;
 }

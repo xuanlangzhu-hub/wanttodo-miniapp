@@ -85,6 +85,12 @@
   </view>
 
   <view class="menu-card quiet">
+    <view class="menu-row" bindtap="onPrivacyTap">
+      <view class="menu-icon privacy-icon"></view>
+      <text>隐私政策</text>
+      <view class="menu-meta">个人信息说明</view>
+      <view class="chevron"></view>
+    </view>
     <view class="menu-row" bindtap="onAboutTap">
       <view class="menu-icon info-icon"></view>
       <text>关于应用</text>
