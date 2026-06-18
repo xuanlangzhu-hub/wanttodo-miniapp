@@ -10,10 +10,45 @@
   ],
   "window": {
     "backgroundColor": "#0E0E12",
+    "backgroundColorTop": "#0E0E12",
+    "backgroundColorBottom": "#09090C",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#0E0E12",
     "navigationBarTitleText": "AI知识卡片",
     "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#83839C",
+    "selectedColor": "#FF7966",
+    "backgroundColor": "#0E0E12",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/nav/home.png",
+        "selectedIconPath": "images/nav/home-active.png"
+      },
+      {
+        "pagePath": "pages/content-pool/index",
+        "text": "卡片",
+        "iconPath": "images/nav/pool.png",
+        "selectedIconPath": "images/nav/pool-active.png"
+      },
+      {
+        "pagePath": "pages/pending/index",
+        "text": "分类",
+        "iconPath": "images/nav/pending.png",
+        "selectedIconPath": "images/nav/pending-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "images/nav/me.png",
+        "selectedIconPath": "images/nav/me-active.png"
+      }
+    ]
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents"

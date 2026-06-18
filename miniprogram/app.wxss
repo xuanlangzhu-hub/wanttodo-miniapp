@@ -1,0 +1,14 @@
+page {
+  min-height: 100vh;
+  background: #0e0e12;
+  color: #ffffff;
+}
+
+view,
+scroll-view,
+swiper,
+input,
+textarea,
+button {
+  box-sizing: border-box;
+}

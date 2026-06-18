@@ -1,5 +1,7 @@
 {
   "navigationStyle": "custom",
+  "backgroundColor": "#0E0E12",
+  "backgroundTextStyle": "light",
   "enablePullDownRefresh": true,
   "usingComponents": {
     "bottom-nav": "/components/bottom-nav/index"

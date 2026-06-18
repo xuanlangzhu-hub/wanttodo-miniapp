@@ -97,7 +97,7 @@ Page({
       return;
     }
 
-    wx.redirectTo({ url: "/pages/content-pool/index" });
+    wx.switchTab({ url: "/pages/content-pool/index" });
   },
 
   onEditTap() {

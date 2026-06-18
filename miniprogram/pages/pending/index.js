@@ -54,9 +54,8 @@ Page({
       return;
     }
 
-    wx.redirectTo({
-      url: `/pages/content-pool/index?keyword=${encodeURIComponent(keyword)}`,
-    });
+    getApp().globalData.poolFilter = { keyword };
+    wx.switchTab({ url: "/pages/content-pool/index" });
   },
 
   onTagTap(event) {
@@ -64,9 +63,8 @@ Page({
       return;
     }
 
-    wx.redirectTo({
-      url: `/pages/content-pool/index?tag=${encodeURIComponent(event.currentTarget.dataset.tag || "")}`,
-    });
+    getApp().globalData.poolFilter = { tag: event.currentTarget.dataset.tag || "" };
+    wx.switchTab({ url: "/pages/content-pool/index" });
   },
 
   onStatusTap(event) {
@@ -74,9 +72,8 @@ Page({
       return;
     }
 
-    wx.redirectTo({
-      url: `/pages/content-pool/index?status=${event.currentTarget.dataset.status}`,
-    });
+    getApp().globalData.poolFilter = { status: event.currentTarget.dataset.status || "all" };
+    wx.switchTab({ url: "/pages/content-pool/index" });
   },
 
   async loadCatalog(showLoading = false) {

@@ -48,12 +48,28 @@ Page({
 
   onShow() {
     this.syncAuthState();
+    this.applyPendingFilter();
     if (!this.data.loggedIn) {
       this.resetData();
       return;
     }
 
     this.loadCards(false);
+  },
+
+  applyPendingFilter() {
+    const app = getApp();
+    const filter = app.globalData.poolFilter;
+    if (!filter) {
+      return;
+    }
+
+    app.globalData.poolFilter = null;
+    this.setData({
+      status: filter.status || "all",
+      keyword: filter.keyword || "",
+      selectedTag: filter.tag || "",
+    });
   },
 
   onPullDownRefresh() {

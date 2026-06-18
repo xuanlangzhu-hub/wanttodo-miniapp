@@ -61,7 +61,7 @@ Page({
       return;
     }
 
-    wx.redirectTo({ url: "/pages/profile/index" });
+    wx.switchTab({ url: "/pages/profile/index" });
   },
 
   onSortTap() {
