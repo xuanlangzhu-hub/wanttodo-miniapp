@@ -47,6 +47,16 @@
         ></textarea>
       </view>
 
+      <view class="organize-panel">
+        <view class="organize-copy">
+          <view class="organize-title">智能整理</view>
+          <view class="organize-subtitle">根据内容生成标题、摘要和建议标签</view>
+        </view>
+        <view class="organize-button {{organizing ? 'disabled' : ''}}" bindtap="onOrganizeTap">
+          {{organizing ? '整理中' : '提取摘要'}}
+        </view>
+      </view>
+
       <view class="field last">
         <view class="label-row">
           <text class="label">卡片摘要</text>
@@ -73,9 +83,26 @@
 
       <view class="field">
         <view class="label">标签</view>
+        <view class="preset-shell" wx:if="{{presetTagItems.length}}">
+          <scroll-view class="preset-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+            <view class="preset-row">
+              <view
+                wx:for="{{presetTagItems}}"
+                wx:key="name"
+                class="preset-tag {{item.selected ? 'active' : ''}}"
+                data-tag="{{item.name}}"
+                bindtap="onPresetTagTap"
+              >
+                #{{item.name}}
+              </view>
+            </view>
+          </scroll-view>
+          <view class="tag-fade tag-fade-left"></view>
+          <view class="tag-fade tag-fade-right"></view>
+        </view>
         <input
           class="input"
-          placeholder="用空格或逗号分隔"
+          placeholder="选择标签或手动输入"
           placeholder-class="placeholder"
           value="{{form.tagsText}}"
           data-field="tagsText"

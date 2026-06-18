@@ -79,10 +79,6 @@ Page({
     });
   },
 
-  onManageHintTap() {
-    wx.showToast({ title: "标签由卡片自动汇总", icon: "none" });
-  },
-
   async loadCatalog(showLoading = false) {
     if (!this.ensureLoggedIn(false)) {
       this.resetData();
@@ -123,11 +119,8 @@ Page({
       }))
       .filter((tag) => tag.name)
       .sort((a, b) => b.count - a.count);
-    const maxCount = sorted.length ? sorted[0].count : 0;
-
     return sorted.map((tag) => Object.assign({}, tag, {
       initial: tag.name.slice(0, 1).toUpperCase(),
-      percent: maxCount ? Math.max(8, Math.round((tag.count / maxCount) * 100)) : 0,
     }));
   },
 

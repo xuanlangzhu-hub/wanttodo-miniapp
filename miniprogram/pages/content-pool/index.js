@@ -14,13 +14,20 @@ const STATUS_TEXT = {
 };
 
 Page({
+  suggestionTimer: null,
+
   data: {
     statusTabs: STATUS_TABS,
     status: "all",
     cards: [],
     keyword: "",
+    suggestions: {
+      keywords: [],
+      tags: [],
+      cards: [],
+    },
+    showSuggestions: false,
     selectedTag: "",
-    tags: [],
     total: 0,
     pageSize: 20,
     loading: false,
@@ -46,7 +53,6 @@ Page({
       return;
     }
 
-    this.loadTags();
     this.loadCards(false);
   },
 
@@ -57,6 +63,10 @@ Page({
     }
 
     this.loadCards(true).finally(() => wx.stopPullDownRefresh());
+  },
+
+  onUnload() {
+    this.clearSuggestions();
   },
 
   onTabTap(event) {
@@ -73,7 +83,9 @@ Page({
   },
 
   onKeywordInput(event) {
-    this.setData({ keyword: event.detail.value || "" });
+    const keyword = event.detail.value || "";
+    this.setData({ keyword });
+    this.queueSuggestions(keyword);
   },
 
   onSearchConfirm() {
@@ -81,14 +93,40 @@ Page({
       return;
     }
 
+    this.clearSuggestions();
     this.loadCards(true);
   },
 
-  onTagTap(event) {
+  onSuggestionKeywordTap(event) {
+    const keyword = event.currentTarget.dataset.keyword || "";
+    this.setData({ keyword });
+    this.clearSuggestions();
+    this.loadCards(true);
+  },
+
+  onSuggestionTagTap(event) {
     const tag = event.currentTarget.dataset.tag || "";
     this.setData({
-      selectedTag: tag === this.data.selectedTag ? "" : tag,
+      selectedTag: tag,
+      keyword: "",
     });
+    this.clearSuggestions();
+    this.loadCards(true);
+  },
+
+  onSuggestionCardTap(event) {
+    this.clearSuggestions();
+    wx.navigateTo({
+      url: `/pages/card-detail/index?id=${event.currentTarget.dataset.id}`,
+    });
+  },
+
+  onClearTagTap() {
+    if (!this.data.selectedTag) {
+      return;
+    }
+
+    this.setData({ selectedTag: "" });
     if (!this.ensureLoggedIn()) {
       return;
     }
@@ -200,18 +238,55 @@ Page({
     }
   },
 
-  async loadTags() {
-    if (!this.ensureLoggedIn(false)) {
-      this.setData({ tags: [] });
+  queueSuggestions(keyword) {
+    if (this.suggestionTimer) {
+      clearTimeout(this.suggestionTimer);
+    }
+
+    const trimmed = (keyword || "").trim();
+    if (!trimmed || !this.data.loggedIn) {
+      this.clearSuggestions();
       return;
     }
 
+    this.suggestionTimer = setTimeout(() => {
+      this.loadSuggestions(trimmed);
+    }, 260);
+  },
+
+  async loadSuggestions(keyword) {
     try {
-      const tags = await cardApi.getTags();
-      this.setData({ tags: tags || [] });
+      const suggestions = await cardApi.getSuggestions({ keyword, limit: 6 });
+      this.setData({
+        suggestions: {
+          keywords: suggestions.keywords || [],
+          tags: suggestions.tags || [],
+          cards: suggestions.cards || [],
+        },
+        showSuggestions: Boolean(
+          (suggestions.keywords && suggestions.keywords.length) ||
+          (suggestions.tags && suggestions.tags.length) ||
+          (suggestions.cards && suggestions.cards.length)
+        ),
+      });
     } catch (error) {
-      this.setData({ tags: [] });
+      this.clearSuggestions();
     }
+  },
+
+  clearSuggestions() {
+    if (this.suggestionTimer) {
+      clearTimeout(this.suggestionTimer);
+      this.suggestionTimer = null;
+    }
+    this.setData({
+      suggestions: {
+        keywords: [],
+        tags: [],
+        cards: [],
+      },
+      showSuggestions: false,
+    });
   },
 
   syncAuthState() {
@@ -233,7 +308,6 @@ Page({
   resetData() {
     this.setData({
       cards: [],
-      tags: [],
       total: 0,
       loading: false,
     });

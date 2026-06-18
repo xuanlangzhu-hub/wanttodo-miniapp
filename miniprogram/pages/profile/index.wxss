@@ -236,17 +236,61 @@ page {
   width: 42rpx;
 }
 
-.pool-icon {
-  border: 4rpx solid #924eff;
+.record-icon {
+  border: 4rpx solid #ff7966;
   border-radius: 8rpx;
   box-sizing: border-box;
 }
 
-.tag-icon {
-  border: 4rpx solid #ff7966;
-  border-radius: 50% 50% 50% 8rpx;
+.record-icon::before {
+  background: #ff7966;
+  border-radius: 999rpx;
+  content: "";
+  height: 4rpx;
+  left: 8rpx;
+  position: absolute;
+  top: 12rpx;
+  width: 20rpx;
+}
+
+.record-icon::after {
+  background: #ff7966;
+  border-radius: 999rpx;
+  content: "";
+  height: 4rpx;
+  left: 8rpx;
+  position: absolute;
+  top: 24rpx;
+  width: 16rpx;
+}
+
+.overview-icon {
+  align-items: flex-end;
+  display: flex;
+  gap: 6rpx;
+  justify-content: center;
+}
+
+.overview-icon::before,
+.overview-icon::after {
+  background: linear-gradient(180deg, #bf44d9, #7838ff);
+  border-radius: 999rpx 999rpx 4rpx 4rpx;
+  content: "";
+  display: block;
+  width: 9rpx;
+}
+
+.overview-icon::before {
+  height: 24rpx;
+}
+
+.overview-icon::after {
+  height: 34rpx;
+}
+
+.overview-icon {
+  border-bottom: 4rpx solid #924eff;
   box-sizing: border-box;
-  transform: rotate(-45deg);
 }
 
 .recycle-icon {

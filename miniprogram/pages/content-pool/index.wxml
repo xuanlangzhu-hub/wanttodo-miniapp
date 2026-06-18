@@ -11,6 +11,51 @@
     />
   </view>
 
+  <view class="suggest-panel" wx:if="{{showSuggestions}}">
+    <view class="suggest-row" wx:if="{{suggestions.keywords.length}}">
+      <view class="suggest-label">关键词</view>
+      <view class="suggest-chips">
+        <view
+          wx:for="{{suggestions.keywords}}"
+          wx:key="*this"
+          class="suggest-chip"
+          data-keyword="{{item}}"
+          catchtap="onSuggestionKeywordTap"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="suggest-row" wx:if="{{suggestions.tags.length}}">
+      <view class="suggest-label">标签</view>
+      <view class="suggest-chips">
+        <view
+          wx:for="{{suggestions.tags}}"
+          wx:key="*this"
+          class="suggest-chip tag-suggest"
+          data-tag="{{item}}"
+          catchtap="onSuggestionTagTap"
+        >
+          #{{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="suggest-row" wx:if="{{suggestions.cards.length}}">
+      <view class="suggest-label">卡片</view>
+      <view
+        wx:for="{{suggestions.cards}}"
+        wx:key="id"
+        class="suggest-card"
+        data-id="{{item.id}}"
+        catchtap="onSuggestionCardTap"
+      >
+        {{item.title}}
+      </view>
+    </view>
+  </view>
+
   <view class="status-tabs">
     <view
       wx:for="{{statusTabs}}"
@@ -23,23 +68,12 @@
     </view>
   </view>
 
-  <scroll-view class="tag-scroll" scroll-x enable-flex wx:if="{{tags.length}}">
-    <view class="tag-filter">
-      <view
-        wx:for="{{tags}}"
-        wx:key="name"
-        class="filter-tag {{selectedTag === item.name ? 'active' : ''}}"
-        data-tag="{{item.name}}"
-        bindtap="onTagTap"
-      >
-        #{{item.name}} {{item.count}}
-      </view>
-    </view>
-  </scroll-view>
-
   <view class="summary-row">
     <text>共 {{total}} 张</text>
-    <text wx:if="{{selectedTag}}">当前标签：{{selectedTag}}</text>
+    <view wx:if="{{selectedTag}}" class="active-filter">
+      <text>标签：#{{selectedTag}}</text>
+      <view class="filter-clear" bindtap="onClearTagTap">×</view>
+    </view>
   </view>
 
   <view class="cards-region">
