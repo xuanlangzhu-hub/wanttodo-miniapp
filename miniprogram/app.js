@@ -6,6 +6,7 @@ App({
       baseUrl: config.baseUrl,
       token: wx.getStorageSync("token") || "",
       userInfo: wx.getStorageSync("userInfo") || null,
+      poolFilter: null,
     };
   },
 

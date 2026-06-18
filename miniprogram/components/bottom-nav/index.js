@@ -21,7 +21,7 @@ Component({
         return;
       }
 
-      wx.redirectTo({ url });
+      wx.switchTab({ url });
     },
 
     onCreateTap() {

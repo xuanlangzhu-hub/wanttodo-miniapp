@@ -135,11 +135,8 @@ Page({
     }
 
     const keyword = encodeURIComponent((this.data.searchKeyword || "").trim());
-    wx.navigateTo({
-      url: keyword
-        ? `/pages/content-pool/index?keyword=${keyword}`
-        : "/pages/content-pool/index",
-    });
+    getApp().globalData.poolFilter = keyword ? { keyword: decodeURIComponent(keyword) } : null;
+    wx.switchTab({ url: "/pages/content-pool/index" });
   },
 
   onViewAllTap() {
@@ -147,7 +144,8 @@ Page({
       return;
     }
 
-    wx.navigateTo({ url: "/pages/content-pool/index" });
+    getApp().globalData.poolFilter = null;
+    wx.switchTab({ url: "/pages/content-pool/index" });
   },
 
   onCardTap(event) {
