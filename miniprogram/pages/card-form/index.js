@@ -201,10 +201,16 @@ Page({
         card = await cardApi.createCard(payload);
       }
 
+      const targetId = (card && card.id) || this.data.id;
+      if (!targetId) {
+        wx.showToast({ title: "已保存，请返回列表查看", icon: "none" });
+        return;
+      }
+
       wx.showToast({ title: "已保存", icon: "success" });
       setTimeout(() => {
         wx.redirectTo({
-          url: `/pages/card-detail/index?id=${card.id || this.data.id}`,
+          url: `/pages/card-detail/index?id=${targetId}`,
         });
       }, 350);
     } catch (error) {

@@ -28,7 +28,9 @@ const buildUrl = (path, query) => {
   return `${baseUrl}${normalizedPath}?${queryString}`;
 };
 
-const request = ({ path, method = "GET", data, query, showLoading = false }) => {
+const DEFAULT_TIMEOUT = 15000;
+
+const request = ({ path, method = "GET", data, query, showLoading = false, timeout = DEFAULT_TIMEOUT }) => {
   const app = getAppSafe();
   const token = app && app.globalData && app.globalData.token
     ? app.globalData.token
@@ -43,6 +45,7 @@ const request = ({ path, method = "GET", data, query, showLoading = false }) => 
       url: buildUrl(path, query),
       method,
       data,
+      timeout,
       header: token
         ? {
             "content-type": "application/json; charset=utf-8",
@@ -55,8 +58,10 @@ const request = ({ path, method = "GET", data, query, showLoading = false }) => 
         const body = response.data || {};
         const ok = response.statusCode >= 200 && response.statusCode < 300;
 
-        if (ok && body.code === response.statusCode) {
-          resolve(body.data);
+        const apiOk = body.code === undefined || body.code < 400;
+
+        if (ok && apiOk) {
+          resolve(Object.prototype.hasOwnProperty.call(body, "data") ? body.data : body);
           return;
         }
 

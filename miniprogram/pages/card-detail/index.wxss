@@ -75,6 +75,20 @@ page {
   position: relative;
 }
 
+.hero-card,
+.reader-card,
+.source-card {
+  animation: detailRise 420ms ease both;
+}
+
+.reader-card {
+  animation-delay: 70ms;
+}
+
+.source-card {
+  animation-delay: 120ms;
+}
+
 .hero-card::before {
   background: radial-gradient(circle, rgba(255, 121, 102, 0.2), rgba(255, 121, 102, 0) 64%);
   content: "";
@@ -196,6 +210,19 @@ page {
   left: 30rpx;
   position: absolute;
   right: 30rpx;
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.reader-card.holding {
+  border-color: rgba(255, 121, 102, 0.36);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.08), 0 26rpx 62rpx rgba(0, 0, 0, 0.28), 0 0 32rpx rgba(146, 78, 255, 0.14);
+}
+
+.reader-card.holding::after {
+  animation: copyProgress 2s linear forwards;
+  background: linear-gradient(100deg, #ff7966 0%, #bf44d9 58%, #7838ff 100%);
+  box-shadow: 0 0 20rpx rgba(146, 78, 255, 0.34);
 }
 
 .reader-label,
@@ -267,6 +294,28 @@ page {
 
 .edit-button::after {
   border: 0;
+}
+
+@keyframes copyProgress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes detailRise {
+  from {
+    opacity: 0;
+    transform: translateY(18rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .loading {

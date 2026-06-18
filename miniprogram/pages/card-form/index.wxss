@@ -239,10 +239,38 @@ page {
   margin-left: 18rpx;
   min-width: 148rpx;
   padding: 0 20rpx;
+  overflow: hidden;
+  position: relative;
 }
 
 .organize-button.disabled {
-  opacity: 0.68;
+  opacity: 0.82;
+  padding-left: 48rpx;
+}
+
+.organize-button.disabled::before {
+  animation: organizeSpin 820ms linear infinite;
+  border: 4rpx solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  box-sizing: border-box;
+  content: "";
+  height: 26rpx;
+  left: 20rpx;
+  pointer-events: none;
+  position: absolute;
+  width: 26rpx;
+  z-index: 1;
+}
+
+.organize-button.disabled::after {
+  animation: organizeFlow 1.8s ease-in-out infinite;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-100%);
 }
 
 .preset-shell {
@@ -354,4 +382,21 @@ page {
 
 .save-button::after {
   border: 0;
+}
+
+@keyframes organizeSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes organizeFlow {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
 }

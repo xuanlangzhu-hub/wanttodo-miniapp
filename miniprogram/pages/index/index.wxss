@@ -253,12 +253,21 @@ page {
 
 .overview-card {
   align-items: center;
+  animation: cardRise 440ms ease both;
   border-radius: 24rpx;
   box-sizing: border-box;
   display: flex;
   min-height: 156rpx;
   overflow: hidden;
   padding: 22rpx 18rpx;
+}
+
+.overview-card:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.overview-card:nth-child(3) {
+  animation-delay: 120ms;
 }
 
 .overview-icon {
@@ -304,14 +313,27 @@ page {
 
 .ring-icon {
   align-items: center;
+  animation: ringPop 720ms ease both;
   background: conic-gradient(#ff7966 0deg, #924eff 230deg, rgba(53, 53, 66, 0.7) 231deg 360deg);
   border-radius: 50%;
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .progress-ring {
   background: conic-gradient(#ff7966 0deg, #924eff 320deg, rgba(53, 53, 66, 0.7) 321deg 360deg);
+}
+
+.ring-icon::before {
+  animation: ringSweep 2.8s ease-in-out infinite;
+  border: 2rpx solid rgba(255, 255, 255, 0.16);
+  border-left-color: rgba(255, 121, 102, 0.38);
+  border-radius: 50%;
+  content: "";
+  inset: -4rpx;
+  pointer-events: none;
+  position: absolute;
 }
 
 .ring-core {
@@ -324,7 +346,9 @@ page {
   font-weight: 700;
   height: 48rpx;
   justify-content: center;
+  position: relative;
   width: 48rpx;
+  z-index: 1;
 }
 
 .percent-core::after {
@@ -332,7 +356,9 @@ page {
   border-radius: 50%;
   content: "";
   height: 26rpx;
+  position: relative;
   width: 26rpx;
+  z-index: 1;
 }
 
 .overview-copy {
@@ -413,11 +439,20 @@ page {
 
 .recent-card {
   align-items: center;
+  animation: cardRise 420ms ease both;
   border-radius: 24rpx;
   box-sizing: border-box;
   display: flex;
   min-height: 138rpx;
   padding: 22rpx;
+}
+
+.recent-card:nth-child(2) {
+  animation-delay: 55ms;
+}
+
+.recent-card:nth-child(3) {
+  animation-delay: 110ms;
 }
 
 .recent-icon {
@@ -514,4 +549,41 @@ page {
 .status.archived {
   background: #353542;
   color: #a2a2b5;
+}
+
+@keyframes cardRise {
+  from {
+    opacity: 0;
+    transform: translateY(18rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ringPop {
+  from {
+    opacity: 0;
+    transform: scale(0.82) rotate(-18deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes ringSweep {
+  0%,
+  100% {
+    opacity: 0.24;
+    transform: rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.62;
+    transform: rotate(180deg);
+  }
 }
