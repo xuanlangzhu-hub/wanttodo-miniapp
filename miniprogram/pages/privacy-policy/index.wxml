@@ -1,0 +1,51 @@
+<view class="page">
+  <view class="nav-bar">
+    <view class="back-button" bindtap="onBackTap">
+      <view class="back-icon"></view>
+    </view>
+    <view class="nav-title">隐私政策</view>
+  </view>
+
+  <view class="hero">
+    <view class="hero-kicker">Privacy Policy</view>
+    <view class="hero-title">AI知识卡片隐私政策</view>
+    <view class="hero-subtitle">我们只收集实现登录、同步和知识卡片管理所必需的信息。</view>
+    <view class="updated">更新日期：{{updatedAt}}</view>
+  </view>
+
+  <view class="policy-card">
+    <view class="section">
+      <view class="section-title">一、我们收集的信息</view>
+      <view class="paragraph">为了提供小程序的基础功能，我们可能收集和使用以下信息：</view>
+      <view class="bullet">微信登录凭证，用于创建和识别你的账号。</view>
+      <view class="bullet">头像、昵称等微信公开资料，用于展示个人资料。</view>
+      <view class="bullet">你主动创建或编辑的知识卡片内容，包括标题、原文、摘要、来源链接、标签和整理状态。</view>
+      <view class="bullet">学习统计信息，例如卡片数量、标签数量、待整理和已整理数量。</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">二、我们如何使用信息</view>
+      <view class="paragraph">这些信息主要用于账号登录、内容同步、卡片展示、搜索筛选、标签整理和学习进度统计。我们不会将你的个人信息用于与本小程序服务无关的用途。</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">三、信息存储与保护</view>
+      <view class="paragraph">你的登录状态会保存在本机缓存中，卡片内容会同步到服务器端，用于跨设备查看和管理。我们会尽量采取合理措施保护数据安全，避免未经授权的访问、泄露或篡改。</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">四、第三方共享</view>
+      <view class="paragraph">除微信登录所需能力和服务器基础服务外，我们不会主动向无关第三方出售、出租或共享你的个人信息。如因法律法规、监管要求或安全保护需要提供信息，我们会在合法范围内处理。</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">五、用户权利</view>
+      <view class="paragraph">你可以在小程序内查看、编辑或删除自己创建的知识卡片，也可以退出登录清除本机登录状态。如需进一步处理账号或数据问题，可以通过小程序公示的开发者联系方式联系我们。</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">六、政策更新</view>
+      <view class="paragraph">如果小程序功能发生变化，例如新增手机号、定位、订阅消息或其他个人信息能力，我们会同步更新本政策，并在必要时重新征得你的授权。</view>
+    </view>
+  </view>
+</view>
