@@ -2,11 +2,11 @@
   <view class="profile-hero">
     <view class="avatar-wrap">
       <view class="profile-avatar">
-        <image wx:if="{{userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <image wx:if="{{userInfo && userInfo.avatarUrl}}" src="{{userInfo && userInfo.avatarUrl}}" mode="aspectFill"></image>
         <text wx:else>{{avatarText}}</text>
       </view>
     </view>
-    <view class="profile-name">{{userInfo.nickname || '未登录'}}</view>
+    <view class="profile-name">{{(userInfo && userInfo.nickname) || '未登录'}}</view>
     <view class="profile-subtitle">构建自己的 AI 知识体系</view>
     <view class="study-badge">
       <view class="badge-dot"></view>

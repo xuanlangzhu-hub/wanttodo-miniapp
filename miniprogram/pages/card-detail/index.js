@@ -19,6 +19,7 @@ Page({
     card: null,
     loading: false,
     loggedIn: false,
+    copyHolding: false,
     statusText: "",
     navTop: 0,
     navHeight: 44,
@@ -118,9 +119,11 @@ Page({
     this.copyTriggered = false;
     this.touchStartPoint = touch ? { x: touch.clientX, y: touch.clientY } : null;
     this.clearCopyTimer();
+    this.setData({ copyHolding: true });
     this.copyTimer = setTimeout(() => {
       this.copyTimer = null;
       this.copyTriggered = true;
+      this.setData({ copyHolding: false });
       this.copyContent();
     }, COPY_HOLD_MS);
   },
@@ -158,6 +161,9 @@ Page({
     if (this.copyTimer) {
       clearTimeout(this.copyTimer);
       this.copyTimer = null;
+    }
+    if (this.data.copyHolding) {
+      this.setData({ copyHolding: false });
     }
   },
 

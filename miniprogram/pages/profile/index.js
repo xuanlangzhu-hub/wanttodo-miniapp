@@ -20,6 +20,7 @@ Page({
     archived: 0,
     deleted: 0,
     tagCount: 0,
+    loggingIn: false,
   },
 
   onShow() {
@@ -111,6 +112,11 @@ Page({
   },
 
   async onLoginTap() {
+    if (this.data.loggingIn) {
+      return;
+    }
+
+    this.setData({ loggingIn: true });
     try {
       const loginResult = await wxLogin();
       if (!loginResult.code) {
@@ -128,6 +134,8 @@ Page({
       this.loadStats();
     } catch (error) {
       this.showError(error);
+    } finally {
+      this.setData({ loggingIn: false });
     }
   },
 

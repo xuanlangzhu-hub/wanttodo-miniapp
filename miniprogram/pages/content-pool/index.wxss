@@ -245,6 +245,7 @@ page {
 }
 
 .card-item {
+  animation: cardRise 420ms ease both;
   background: linear-gradient(145deg, rgba(35, 35, 48, 0.92), rgba(16, 16, 24, 0.84));
   border: 1rpx solid rgba(131, 131, 156, 0.28);
   border-radius: 28rpx;
@@ -254,6 +255,22 @@ page {
   overflow: hidden;
   padding: 28rpx;
   position: relative;
+}
+
+.card-item:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.card-item:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.card-item:nth-child(4) {
+  animation-delay: 135ms;
+}
+
+.card-item:nth-child(5) {
+  animation-delay: 180ms;
 }
 
 .card-item::before {
@@ -459,4 +476,16 @@ page {
   background: linear-gradient(180deg, rgba(11, 13, 22, 0) 0%, rgba(11, 13, 22, 0.62) 58%, #0b0d16 100%);
   bottom: 0;
   height: 112rpx;
+}
+
+@keyframes cardRise {
+  from {
+    opacity: 0;
+    transform: translateY(18rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

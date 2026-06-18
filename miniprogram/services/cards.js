@@ -58,6 +58,7 @@ const organizeCard = (payload) =>
     method: "POST",
     data: payload,
     showLoading: true,
+    timeout: 30000,
   });
 
 const updateCard = (id, patch) =>

@@ -44,6 +44,7 @@ Page({
     page: 1,
     pageSize: 20,
     loading: false,
+    loggingIn: false,
     loggedIn: false,
     userInfo: null,
     avatarText: "我",
@@ -78,6 +79,11 @@ Page({
   },
 
   async onLoginTap() {
+    if (this.data.loggingIn) {
+      return;
+    }
+
+    this.setData({ loggingIn: true });
     try {
       const loginResult = await wxLogin();
       if (!loginResult.code) {
@@ -95,6 +101,8 @@ Page({
       this.loadCards(true);
     } catch (error) {
       this.showError(error);
+    } finally {
+      this.setData({ loggingIn: false });
     }
   },
 

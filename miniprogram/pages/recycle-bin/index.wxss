@@ -199,9 +199,22 @@ page {
 }
 
 .card-item {
+  animation: cardRise 420ms ease both;
   overflow: hidden;
   padding: 28rpx;
   position: relative;
+}
+
+.card-item:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.card-item:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.card-item:nth-child(4) {
+  animation-delay: 135ms;
 }
 
 .card-item::before {
@@ -446,4 +459,16 @@ page {
   color: #83839c;
   font-size: 26rpx;
   margin-top: 12rpx;
+}
+
+@keyframes cardRise {
+  from {
+    opacity: 0;
+    transform: translateY(18rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -28,7 +28,7 @@
     </view>
 
     <view
-      class="reader-card"
+      class="reader-card {{copyHolding ? 'holding' : ''}}"
       bindtouchstart="onReaderTouchStart"
       bindtouchmove="onReaderTouchMove"
       bindtouchend="onReaderTouchEnd"
