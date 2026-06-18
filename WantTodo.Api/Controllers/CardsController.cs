@@ -18,12 +18,15 @@ public class CardsController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _http;
+    private readonly ILogger<CardsController> _logger;
 
-    public CardsController(AppDbContext db, IConfiguration config, IHttpClientFactory http)
+    public CardsController(AppDbContext db, IConfiguration config, IHttpClientFactory http,
+        ILogger<CardsController> logger)
     {
         _db = db;
         _config = config;
         _http = http;
+        _logger = logger;
     }
 
     private string UserId =>
@@ -44,6 +47,7 @@ public class CardsController : ControllerBase
         [FromQuery] string sort = "updatedAt",
         [FromQuery] string order = "desc")
     {
+        if (pageSize > 100) pageSize = 100;
         var query = _db.Cards.Where(c => c.UserId == UserId && c.DeletedAt == null);
 
         // 状态筛选
@@ -139,7 +143,12 @@ public class CardsController : ControllerBase
         if (card == null)
             return NotFound(ApiResponse<object>.NotFound("卡片不存在"));
 
-        if (dto.Title != null) card.Title = dto.Title;
+        if (dto.Title != null)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return BadRequest(ApiResponse<object>.BadRequest("title 不能为空"));
+            card.Title = dto.Title;
+        }
         if (dto.SourceText != null) card.SourceText = dto.SourceText;
         if (dto.Summary != null) card.Summary = dto.Summary;
         if (dto.SourceUrl != null)
@@ -199,6 +208,7 @@ public class CardsController : ControllerBase
         [FromQuery] string sort = "deletedAt",
         [FromQuery] string order = "desc")
     {
+        if (pageSize > 100) pageSize = 100;
         var query = _db.Cards.Where(c => c.UserId == UserId && c.DeletedAt != null);
 
         if (!string.IsNullOrWhiteSpace(keyword))
@@ -353,8 +363,24 @@ public class CardsController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.SourceText))
             return BadRequest(ApiResponse<OrganizeResultDto>.BadRequest("sourceText 不能为空"));
 
-        var result = await CallDeepSeek(dto);
-        return Ok(ApiResponse<OrganizeResultDto>.Ok(result));
+        var apiKey = _config["DeepSeek:ApiKey"] ?? "";
+        if (string.IsNullOrWhiteSpace(apiKey))
+            return StatusCode(500, ApiResponse<OrganizeResultDto>.Fail(500, "智能整理服务未配置"));
+
+        try
+        {
+            var result = await CallDeepSeek(dto, apiKey);
+            return Ok(ApiResponse<OrganizeResultDto>.Ok(result));
+        }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(500, ApiResponse<OrganizeResultDto>.Fail(500, "智能整理超时，请稍后重试或手动填写"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "智能整理失败");
+            return StatusCode(500, ApiResponse<OrganizeResultDto>.Fail(500, "智能整理暂时不可用，请手动填写"));
+        }
     }
 
     // ═══════════════════════════════════════════
@@ -365,6 +391,9 @@ public class CardsController : ControllerBase
         [FromQuery] string keyword = "",
         [FromQuery] int limit = 8)
     {
+        if (limit < 1) limit = 1;
+        if (limit > 20) limit = 20;
+
         if (string.IsNullOrWhiteSpace(keyword))
             return Ok(ApiResponse<object>.Ok(new { keywords = Array.Empty<string>(), tags = Array.Empty<string>(), cards = Array.Empty<object>() }));
 
@@ -414,10 +443,10 @@ public class CardsController : ControllerBase
     // ═══════════════════════════════════════════
     // DeepSeek API 调用
     // ═══════════════════════════════════════════
-    private async Task<OrganizeResultDto> CallDeepSeek(OrganizeDto dto)
+    private async Task<OrganizeResultDto> CallDeepSeek(OrganizeDto dto, string apiKey)
     {
-        var apiKey = _config["DeepSeek:ApiKey"] ?? "";
         var client = _http.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(30);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
         var presetTags = _config.GetSection("PresetTags").Get<List<string>>() ?? new List<string>();

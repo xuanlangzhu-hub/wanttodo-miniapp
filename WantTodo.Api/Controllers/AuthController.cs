@@ -17,29 +17,34 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _http;
+    private readonly IWebHostEnvironment _env;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(AppDbContext db, IConfiguration config, IHttpClientFactory http)
+    public AuthController(AppDbContext db, IConfiguration config, IHttpClientFactory http,
+        IWebHostEnvironment env, ILogger<AuthController> logger)
     {
         _db = db;
         _config = config;
         _http = http;
+        _env = env;
+        _logger = logger;
     }
 
-    // ── GET /api/v1/auth/dev-token（仅开发环境）──
+    // ── GET /api/v1/auth/dev-token（双重门禁：仅开发环境 + DevMode）──
     [HttpGet("dev-token")]
     public async Task<ActionResult<ApiResponse<LoginResultDto>>> DevToken()
     {
-        if (!_config.GetValue<bool>("DevMode"))
+        if (!_env.IsDevelopment() || !_config.GetValue<bool>("DevMode"))
             return NotFound();
 
         var userId = "test_user_01";
         // 自动创建测试用户（如果不存在）
         if (!await _db.Users.AnyAsync(u => u.Id == userId))
         {
-            _db.Users.Add(new Models.User { Id = userId, OpenId = "test_openid", Nickname = "测试用户" });
+            _db.Users.Add(new User { Id = userId, OpenId = "test_openid", Nickname = "测试用户" });
             await _db.SaveChangesAsync();
         }
-        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
+        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026-change-in-production";
         var expiresIn = 7200;
         var token = GenerateJwt(userId, jwtKey, expiresIn);
 
@@ -64,15 +69,8 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Code))
             return BadRequest(ApiResponse<LoginResultDto>.BadRequest("code 不能为空"));
 
-        // 调用微信接口，用 code 换 openId
         var appId = _config["Wechat:AppId"] ?? "";
         var appSecret = _config["Wechat:AppSecret"] ?? "";
-
-        // 临时日志：打印 AppId 前几位 + 后几位（不打印完整 Secret）
-        var appIdPreview = appId.Length > 6
-            ? $"{appId[..3]}...{appId[^3..]}"
-            : appId;
-        Console.WriteLine($"[WechatLogin] AppId={appIdPreview}, Code={dto.Code[..Math.Min(8, dto.Code.Length)]}...");
 
         string openId;
         try
@@ -81,7 +79,15 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiResponse<LoginResultDto>.BadRequest($"微信登录失败: {ex.Message}"));
+            _logger.LogWarning(ex, "微信登录 code2Session 失败");
+            return BadRequest(ApiResponse<LoginResultDto>.BadRequest("微信登录失败，请稍后重试"));
+        }
+
+        // openId 不能为空
+        if (string.IsNullOrWhiteSpace(openId))
+        {
+            _logger.LogWarning("微信登录返回空 openId");
+            return BadRequest(ApiResponse<LoginResultDto>.BadRequest("微信登录失败，请稍后重试"));
         }
 
         // 查找或创建用户
@@ -94,7 +100,7 @@ public class AuthController : ControllerBase
         }
 
         // 生成 JWT
-        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
+        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026-change-in-production";
         var expiresIn = 7200;
         var token = GenerateJwt(user.Id, jwtKey, expiresIn);
 
