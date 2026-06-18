@@ -11,7 +11,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
 // ── JWT 鉴权 ──
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "wanttodo-dev-key-2026-change-in-production";
+var jwtKey = builder.Configuration["Jwt:Key"];
+var devDefaultKey = "wanttodo-dev-key-2026-change-in-production";
+
+// 生产环境禁止使用默认密钥
+if (!builder.Environment.IsDevelopment() && (string.IsNullOrEmpty(jwtKey) || jwtKey == devDefaultKey))
+    throw new InvalidOperationException("生产环境必须配置 Jwt:Key，不能使用默认开发密钥");
+
+jwtKey ??= devDefaultKey;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -48,6 +56,12 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// ── 启动摘要日志 ──
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("WantTodo API 启动 | 环境: {Env} | 数据库: SQLite | 端口: {Url}",
+    app.Environment.EnvironmentName,
+    app.Urls.FirstOrDefault() ?? "5000");
 
 if (app.Environment.IsDevelopment())
 {
