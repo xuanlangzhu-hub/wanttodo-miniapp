@@ -73,7 +73,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ── 自动建库建表（开发阶段）──
+// ── 数据库初始化（SQLite 个人工具：快速部署，不支持自动迁移）──
+// EnsureCreated 只在库/表不存在时创建，不会自动补齐已有表的缺失列。后续改字段需手动处理或引入 EF Migrations。
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

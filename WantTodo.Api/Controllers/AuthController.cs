@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
             _db.Users.Add(new User { Id = userId, OpenId = "test_openid", Nickname = "测试用户" });
             await _db.SaveChangesAsync();
         }
-        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
+        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026-change-in-production";
         var expiresIn = 7200;
         var token = GenerateJwt(userId, jwtKey, expiresIn);
 
@@ -100,7 +100,7 @@ public class AuthController : ControllerBase
         }
 
         // 生成 JWT
-        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
+        var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026-change-in-production";
         var expiresIn = 7200;
         var token = GenerateJwt(user.Id, jwtKey, expiresIn);
 

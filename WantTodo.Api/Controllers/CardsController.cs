@@ -208,6 +208,7 @@ public class CardsController : ControllerBase
         [FromQuery] string sort = "deletedAt",
         [FromQuery] string order = "desc")
     {
+        if (pageSize > 100) pageSize = 100;
         var query = _db.Cards.Where(c => c.UserId == UserId && c.DeletedAt != null);
 
         if (!string.IsNullOrWhiteSpace(keyword))
@@ -390,6 +391,9 @@ public class CardsController : ControllerBase
         [FromQuery] string keyword = "",
         [FromQuery] int limit = 8)
     {
+        if (limit < 1) limit = 1;
+        if (limit > 20) limit = 20;
+
         if (string.IsNullOrWhiteSpace(keyword))
             return Ok(ApiResponse<object>.Ok(new { keywords = Array.Empty<string>(), tags = Array.Empty<string>(), cards = Array.Empty<object>() }));
 
