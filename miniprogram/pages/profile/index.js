@@ -75,29 +75,38 @@ Page({
     wx.navigateTo({ url: "/pages/recycle-bin/index" });
   },
 
-  onPoolTap() {
+  onStudyRecordTap() {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
-    wx.redirectTo({ url: "/pages/content-pool/index" });
+    wx.showModal({
+      title: "学习记录",
+      content: `已整理 ${this.data.done} 张，待整理 ${this.data.pending} 张，已归档 ${this.data.archived} 张。`,
+      showCancel: false,
+      confirmText: "知道了",
+      confirmColor: "#ff7966",
+    });
   },
 
-  onCategoryTap() {
+  onOverviewTap() {
     if (!this.ensureLoggedIn()) {
       return;
     }
 
-    wx.redirectTo({ url: "/pages/pending/index" });
+    wx.showToast({
+      title: `共 ${this.data.total} 张，${this.data.tagCount} 个标签`,
+      icon: "none",
+    });
   },
 
-  onStatusTap(event) {
-    if (!this.ensureLoggedIn()) {
-      return;
-    }
-
-    wx.redirectTo({
-      url: `/pages/content-pool/index?status=${event.currentTarget.dataset.status}`,
+  onAboutTap() {
+    wx.showModal({
+      title: "关于应用",
+      content: "AI 知识卡片 v2，用于整理学习材料和个人知识记录。",
+      showCancel: false,
+      confirmText: "知道了",
+      confirmColor: "#ff7966",
     });
   },
 

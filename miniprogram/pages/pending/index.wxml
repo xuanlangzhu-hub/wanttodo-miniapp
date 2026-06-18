@@ -45,32 +45,38 @@
 
   <view class="section-head">
     <view class="section-title">标签目录</view>
-    <view class="section-link" bindtap="onManageHintTap">按数量排序</view>
   </view>
 
-  <view wx:if="{{!loading && filteredTags.length === 0}}" class="empty-card">
-    <view class="empty-title">{{loggedIn ? '暂无标签' : '登录后查看标签'}}</view>
-    <view class="empty-text">{{loggedIn ? '保存卡片时添加标签，这里会自动形成目录。' : '登录后会显示你的知识体系。'}}</view>
-  </view>
+  <view class="tag-region">
+    <scroll-view class="tag-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:if="{{!loading && filteredTags.length === 0}}" class="empty-card">
+        <view class="empty-title">{{loggedIn ? '暂无标签' : '登录后查看标签'}}</view>
+        <view class="empty-text">{{loggedIn ? '保存卡片时添加标签，这里会自动形成目录。' : '登录后会显示你的知识体系。'}}</view>
+      </view>
 
-  <view class="tag-grid" wx:else>
-    <view
-      wx:for="{{filteredTags}}"
-      wx:key="name"
-      class="tag-card"
-      data-tag="{{item.name}}"
-      bindtap="onTagTap"
-    >
-      <view class="tag-icon">{{item.initial}}</view>
-      <view class="tag-main">
-        <view class="tag-name">{{item.name}}</view>
-        <view class="tag-count">{{item.count}} 张卡片</view>
+      <view class="tag-grid" wx:else>
+        <view
+          wx:for="{{filteredTags}}"
+          wx:key="name"
+          class="tag-card"
+          data-tag="{{item.name}}"
+          bindtap="onTagTap"
+        >
+          <view class="tag-top">
+            <view class="tag-icon">{{item.initial}}</view>
+            <view class="tag-count">
+              <text>{{item.count}}</text>
+              <view>张卡片</view>
+            </view>
+          </view>
+          <view class="tag-main">
+            <view class="tag-name">{{item.name}}</view>
+          </view>
+        </view>
       </view>
-      <view class="tag-percent">{{item.percent}}%</view>
-      <view class="progress-track">
-        <view class="progress-fill" style="width: {{item.percent}}%;"></view>
-      </view>
-    </view>
+    </scroll-view>
+    <view class="scroll-fade scroll-fade-top"></view>
+    <view class="scroll-fade scroll-fade-bottom"></view>
   </view>
 
   <view class="section-head compact">

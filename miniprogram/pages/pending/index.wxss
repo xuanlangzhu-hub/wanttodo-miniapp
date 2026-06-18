@@ -1,12 +1,16 @@
 page {
-  min-height: 100vh;
+  height: 100vh;
   background: radial-gradient(circle at 50% 0%, #20202c 0%, #0e0e12 48%, #09090c 100%);
+  overflow: hidden;
 }
 
 .page {
   box-sizing: border-box;
-  min-height: 100vh;
-  padding: 106rpx 32rpx 190rpx;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  padding: 106rpx 32rpx 0;
 }
 
 .search-shell {
@@ -16,6 +20,7 @@ page {
   border-radius: 42rpx;
   box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.06), 0 18rpx 42rpx rgba(0, 0, 0, 0.22);
   display: flex;
+  flex-shrink: 0;
   height: 84rpx;
   margin-bottom: 28rpx;
   padding: 0 30rpx;
@@ -66,6 +71,7 @@ page {
 .hero-card {
   border-radius: 30rpx;
   box-sizing: border-box;
+  flex-shrink: 0;
   min-height: 260rpx;
   overflow: hidden;
   padding: 36rpx 34rpx;
@@ -192,6 +198,7 @@ page {
 
 .section-head {
   align-items: center;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   margin: 38rpx 2rpx 20rpx;
@@ -207,24 +214,46 @@ page {
   font-weight: 800;
 }
 
-.section-link {
-  color: #83839c;
-  font-size: 24rpx;
+.tag-region {
+  background: #0b0d16;
+  border: 1rpx solid rgba(131, 131, 156, 0.08);
+  border-radius: 26rpx;
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 260rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.tag-scroll {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
 }
 
 .tag-grid {
   display: grid;
   gap: 18rpx;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 20rpx 20rpx 92rpx;
 }
 
 .tag-card {
   border-radius: 24rpx;
   box-sizing: border-box;
-  min-height: 174rpx;
+  display: flex;
+  flex-direction: column;
+  min-height: 170rpx;
   overflow: hidden;
   padding: 22rpx;
   position: relative;
+}
+
+.tag-top {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .tag-icon {
@@ -238,35 +267,42 @@ page {
   font-weight: 800;
   height: 70rpx;
   justify-content: center;
-  margin-bottom: 18rpx;
   width: 70rpx;
+}
+
+.tag-main {
+  margin-top: 18rpx;
+  min-width: 0;
 }
 
 .tag-name {
   color: #ffffff;
+  display: -webkit-box;
   font-size: 29rpx;
   font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.28;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .tag-count {
-  color: #a2a2b5;
-  font-size: 23rpx;
-  margin-top: 6rpx;
+  color: #83839c;
+  font-size: 22rpx;
+  line-height: 1.25;
+  text-align: right;
 }
 
-.tag-percent {
-  color: #c1c1cd;
-  font-size: 26rpx;
-  position: absolute;
-  right: 22rpx;
-  top: 32rpx;
+.tag-count text {
+  color: #ffffff;
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  margin-bottom: 4rpx;
 }
 
-.progress-track,
 .status-bar {
   background: rgba(53, 53, 66, 0.66);
   border-radius: 999rpx;
@@ -274,14 +310,6 @@ page {
   overflow: hidden;
 }
 
-.progress-track {
-  bottom: 22rpx;
-  left: 22rpx;
-  position: absolute;
-  right: 22rpx;
-}
-
-.progress-fill,
 .status-fill {
   background: linear-gradient(90deg, #ff7966, #bf44d9, #7838ff);
   border-radius: 999rpx;
@@ -291,6 +319,8 @@ page {
 .status-card {
   border-radius: 24rpx;
   box-sizing: border-box;
+  flex-shrink: 0;
+  margin-bottom: 154rpx;
   padding: 18rpx 24rpx;
 }
 
@@ -341,6 +371,7 @@ page {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  margin: 20rpx;
   padding: 56rpx 32rpx;
 }
 
@@ -356,4 +387,24 @@ page {
   line-height: 1.45;
   margin-top: 12rpx;
   text-align: center;
+}
+
+.scroll-fade {
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 20;
+}
+
+.scroll-fade-top {
+  background: linear-gradient(180deg, #0b0d16 0%, rgba(11, 13, 22, 0.72) 34%, rgba(11, 13, 22, 0) 100%);
+  height: 58rpx;
+  top: 0;
+}
+
+.scroll-fade-bottom {
+  background: linear-gradient(180deg, rgba(11, 13, 22, 0) 0%, rgba(11, 13, 22, 0.62) 58%, #0b0d16 100%);
+  bottom: 0;
+  height: 92rpx;
 }

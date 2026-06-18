@@ -28,7 +28,6 @@ Page({
     },
     showSuggestions: false,
     selectedTag: "",
-    tags: [],
     total: 0,
     pageSize: 20,
     loading: false,
@@ -54,7 +53,6 @@ Page({
       return;
     }
 
-    this.loadTags();
     this.loadCards(false);
   },
 
@@ -123,11 +121,12 @@ Page({
     });
   },
 
-  onTagTap(event) {
-    const tag = event.currentTarget.dataset.tag || "";
-    this.setData({
-      selectedTag: tag === this.data.selectedTag ? "" : tag,
-    });
+  onClearTagTap() {
+    if (!this.data.selectedTag) {
+      return;
+    }
+
+    this.setData({ selectedTag: "" });
     if (!this.ensureLoggedIn()) {
       return;
     }
@@ -239,20 +238,6 @@ Page({
     }
   },
 
-  async loadTags() {
-    if (!this.ensureLoggedIn(false)) {
-      this.setData({ tags: [] });
-      return;
-    }
-
-    try {
-      const tags = await cardApi.getTags();
-      this.setData({ tags: tags || [] });
-    } catch (error) {
-      this.setData({ tags: [] });
-    }
-  },
-
   queueSuggestions(keyword) {
     if (this.suggestionTimer) {
       clearTimeout(this.suggestionTimer);
@@ -323,7 +308,6 @@ Page({
   resetData() {
     this.setData({
       cards: [],
-      tags: [],
       total: 0,
       loading: false,
     });

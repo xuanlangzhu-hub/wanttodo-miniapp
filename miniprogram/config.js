@@ -1,11 +1,13 @@
 const baseUrls = {
   simulator: "http://localhost:5000/api/v1",
-  device: "http://172.21.37.148:5000/api/v1",
+  device: "http://192.168.236.6:5000/api/v1",
 };
 
+const activeEnv = "simulator";
+
 const config = {
-  activeEnv: "simulator",
-  baseUrl: baseUrls.simulator,
+  activeEnv,
+  baseUrl: baseUrls[activeEnv],
   baseUrls,
 };
 

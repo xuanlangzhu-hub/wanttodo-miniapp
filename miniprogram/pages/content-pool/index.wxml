@@ -68,27 +68,12 @@
     </view>
   </view>
 
-  <view class="tag-shell" wx:if="{{tags.length}}">
-    <scroll-view class="tag-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
-      <view class="tag-filter">
-        <view
-          wx:for="{{tags}}"
-          wx:key="name"
-          class="filter-tag {{selectedTag === item.name ? 'active' : ''}}"
-          data-tag="{{item.name}}"
-          bindtap="onTagTap"
-        >
-          #{{item.name}} {{item.count}}
-        </view>
-      </view>
-    </scroll-view>
-    <view class="tag-fade tag-fade-left"></view>
-    <view class="tag-fade tag-fade-right"></view>
-  </view>
-
   <view class="summary-row">
     <text>共 {{total}} 张</text>
-    <text wx:if="{{selectedTag}}">当前标签：{{selectedTag}}</text>
+    <view wx:if="{{selectedTag}}" class="active-filter">
+      <text>标签：#{{selectedTag}}</text>
+      <view class="filter-clear" bindtap="onClearTagTap">×</view>
+    </view>
   </view>
 
   <view class="cards-region">
