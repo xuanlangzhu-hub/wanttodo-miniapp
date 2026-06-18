@@ -27,12 +27,18 @@ public class AuthController : ControllerBase
 
     // ── GET /api/v1/auth/dev-token（仅开发环境）──
     [HttpGet("dev-token")]
-    public ActionResult<ApiResponse<LoginResultDto>> DevToken()
+    public async Task<ActionResult<ApiResponse<LoginResultDto>>> DevToken()
     {
         if (!_config.GetValue<bool>("DevMode"))
             return NotFound();
 
         var userId = "test_user_01";
+        // 自动创建测试用户（如果不存在）
+        if (!await _db.Users.AnyAsync(u => u.Id == userId))
+        {
+            _db.Users.Add(new Models.User { Id = userId, OpenId = "test_openid", Nickname = "测试用户" });
+            await _db.SaveChangesAsync();
+        }
         var jwtKey = _config["Jwt:Key"] ?? "wanttodo-dev-key-2026";
         var expiresIn = 7200;
         var token = GenerateJwt(userId, jwtKey, expiresIn);
