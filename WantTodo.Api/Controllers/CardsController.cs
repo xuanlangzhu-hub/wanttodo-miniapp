@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +16,15 @@ namespace WantTodo.Api.Controllers;
 public class CardsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IConfiguration _config;
+    private readonly IHttpClientFactory _http;
 
-    public CardsController(AppDbContext db) => _db = db;
+    public CardsController(AppDbContext db, IConfiguration config, IHttpClientFactory http)
+    {
+        _db = db;
+        _config = config;
+        _http = http;
+    }
 
     private string UserId =>
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -47,34 +55,36 @@ public class CardsController : ControllerBase
             _ => query
         };
 
+        var cards = await query.ToListAsync();
+
         // 关键词搜索（标题/摘要/原文/标签）
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            query = query.Where(c =>
-                c.Title.Contains(keyword) ||
-                c.Summary.Contains(keyword) ||
-                c.SourceText.Contains(keyword) ||
-                c.TagsJson.Contains(keyword));
+            cards = cards.Where(c =>
+                TextContains(c.Title, keyword) ||
+                TextContains(c.Summary, keyword) ||
+                TextContains(c.SourceText, keyword) ||
+                c.GetTags().Any(t => TextContains(t, keyword))).ToList();
         }
 
-        // 按标签筛选
+        // 按标签筛选。TagsJson 中中文可能被 JSON 转义，必须反序列化后匹配。
         if (!string.IsNullOrWhiteSpace(tag))
         {
-            query = query.Where(c => c.TagsJson.Contains(tag));
+            cards = cards.Where(c =>
+                c.GetTags().Any(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase))).ToList();
         }
 
-        // 排序
-        query = (sort, order) switch
+        cards = (sort, order) switch
         {
-            ("createdAt", "asc") => query.OrderBy(c => c.CreatedAt),
-            ("createdAt", "desc") => query.OrderByDescending(c => c.CreatedAt),
-            ("updatedAt", "asc") => query.OrderBy(c => c.UpdatedAt),
-            _ => query.OrderByDescending(c => c.UpdatedAt)
+            ("createdAt", "asc") => cards.OrderBy(c => c.CreatedAt).ToList(),
+            ("createdAt", "desc") => cards.OrderByDescending(c => c.CreatedAt).ToList(),
+            ("updatedAt", "asc") => cards.OrderBy(c => c.UpdatedAt).ToList(),
+            _ => cards.OrderByDescending(c => c.UpdatedAt).ToList()
         };
 
-        var total = await query.CountAsync();
-        var cards = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        var list = cards.Select(MapToResponse).ToList();
+        var total = cards.Count;
+        var pageCards = cards.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        var list = pageCards.Select(MapToResponse).ToList();
 
         return Ok(ApiResponse<object>.Ok(new { list, total, page, pageSize }));
     }
@@ -335,8 +345,151 @@ public class CardsController : ControllerBase
     }
 
     // ═══════════════════════════════════════════
+    // 4.3.1  POST /cards/organize  智能整理
+    // ═══════════════════════════════════════════
+    [HttpPost("organize")]
+    public async Task<ActionResult<ApiResponse<OrganizeResultDto>>> Organize(OrganizeDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.SourceText))
+            return BadRequest(ApiResponse<OrganizeResultDto>.BadRequest("sourceText 不能为空"));
+
+        var result = await CallDeepSeek(dto);
+        return Ok(ApiResponse<OrganizeResultDto>.Ok(result));
+    }
+
+    // ═══════════════════════════════════════════
+    // 4.7  GET /cards/suggestions  搜索联想
+    // ═══════════════════════════════════════════
+    [HttpGet("suggestions")]
+    public async Task<ActionResult<ApiResponse<object>>> GetSuggestions(
+        [FromQuery] string keyword = "",
+        [FromQuery] int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+            return Ok(ApiResponse<object>.Ok(new { keywords = Array.Empty<string>(), tags = Array.Empty<string>(), cards = Array.Empty<object>() }));
+
+        var activeCards = _db.Cards.Where(c => c.UserId == UserId && c.DeletedAt == null);
+
+        // 匹配标签
+        var matchingTags = await activeCards
+            .Select(c => c.TagsJson)
+            .ToListAsync();
+
+        var tagSet = new HashSet<string>();
+        foreach (var json in matchingTags)
+        {
+            List<string> tags;
+            try { tags = JsonSerializer.Deserialize<List<string>>(json) ?? new(); }
+            catch { continue; }
+            foreach (var t in tags)
+                if (t.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    tagSet.Add(t);
+        }
+
+        // 匹配卡片标题
+        var matchingCards = await activeCards
+            .Where(c => c.Title.Contains(keyword))
+            .Take(limit)
+            .Select(c => new { c.Id, c.Title })
+            .ToListAsync();
+
+        // 从标题中提取关键词
+        var keywordSet = new HashSet<string>();
+        foreach (var c in matchingCards)
+        {
+            var words = c.Title.Split(' ', '，', '、', '|', '/', '-', '—');
+            foreach (var w in words)
+                if (w.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    keywordSet.Add(w.Trim());
+        }
+
+        return Ok(ApiResponse<object>.Ok(new
+        {
+            keywords = keywordSet.Take(limit).ToList(),
+            tags = tagSet.Take(limit).ToList(),
+            cards = matchingCards.Select(c => new { c.Id, c.Title }).ToList()
+        }));
+    }
+
+    // ═══════════════════════════════════════════
+    // DeepSeek API 调用
+    // ═══════════════════════════════════════════
+    private async Task<OrganizeResultDto> CallDeepSeek(OrganizeDto dto)
+    {
+        var apiKey = _config["DeepSeek:ApiKey"] ?? "";
+        var client = _http.CreateClient();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+        var presetTags = _config.GetSection("PresetTags").Get<List<string>>() ?? new List<string>();
+        var tagList = string.Join("、", presetTags);
+
+        var prompt = $@"你是一个知识整理助手。请根据用户提供的学习材料，生成以下内容：
+
+1. 标题（简洁，最长30字）
+2. 摘要（1-2句话概括核心内容，最长200字）
+3. 标签（2-4个，优先从以下预设标签中选择：{tagList}；如果没有匹配的，可以建议1个新标签）
+
+请务必按以下 JSON 格式返回，不要包含其他文字：
+{{ ""title"": ""建议标题"", ""summary"": ""建议摘要"", ""tags"": [""标签1"", ""标签2""] }}
+
+学习材料：
+{dto.SourceText}";
+
+        var requestBody = new
+        {
+            model = "deepseek-chat",
+            messages = new[]
+            {
+                new { role = "system", content = "你是一个知识整理助手，只返回 JSON 格式的结果，不输出其他内容。" },
+                new { role = "user", content = prompt }
+            },
+            temperature = 0.7,
+            max_tokens = 1024
+        };
+
+        var response = await client.PostAsJsonAsync("https://api.deepseek.com/chat/completions", requestBody);
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadFromJsonAsync<DeepSeekResponse>();
+        var content = body?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "";
+
+        // 清理 AI 返回的 markdown 代码块标记
+        if (content.StartsWith("```")) content = content[(content.IndexOf('\n') + 1)..];
+        if (content.EndsWith("```")) content = content[..content.LastIndexOf("```")];
+
+        try
+        {
+            var organized = JsonSerializer.Deserialize<OrganizeResultDto>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return organized ?? new OrganizeResultDto { Title = "未能解析", Summary = content };
+        }
+        catch
+        {
+            return new OrganizeResultDto { Title = "整理中...", Summary = content };
+        }
+    }
+
+    // DeepSeek API 响应模型
+    private class DeepSeekResponse
+    {
+        public List<DeepSeekChoice>? Choices { get; set; }
+    }
+
+    private class DeepSeekChoice
+    {
+        public DeepSeekMessage? Message { get; set; }
+    }
+
+    private class DeepSeekMessage
+    {
+        public string? Content { get; set; }
+    }
+
+    // ═══════════════════════════════════════════
     // 辅助：卡片 → API 响应对象
     // ═══════════════════════════════════════════
+    private static bool TextContains(string? source, string keyword) =>
+        !string.IsNullOrEmpty(source) && source.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
     private static object MapToResponse(KnowledgeCard c) => new
     {
         c.Id,

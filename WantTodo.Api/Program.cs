@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── 数据库 ──
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
 // ── JWT 鉴权 ──
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "wanttodo-dev-key-2026-change-in-production";

@@ -8,6 +8,8 @@ obj/
 *.exe
 *.pdb
 *.db
+*.db-shm
+*.db-wal
 
 # 操作系统
 .DS_Store
