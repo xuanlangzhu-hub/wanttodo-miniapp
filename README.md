@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img alt="License" src="https://img.shields.io/github/license/xuanlangzhu-hub/myfirstWXapp">
+  <img alt="License" src="https://img.shields.io/github/license/xuanlangzhu-hub/wanttodo-miniapp">
   <img alt="Platform" src="https://img.shields.io/badge/platform-WeChat%20MiniProgram-brightgreen">
   <img alt="Backend" src="https://img.shields.io/badge/backend-ASP.NET%2010-blue">
   <img alt="Database" src="https://img.shields.io/badge/database-SQLite-lightgrey">
@@ -97,8 +97,8 @@ wanttodo/
 ### 1. 克隆仓库
 
 ```bash
-git clone git@github.com:xuanlangzhu-hub/myfirstWXapp.git
-cd myfirstWXapp
+git clone git@github.com:xuanlangzhu-hub/wanttodo-miniapp.git
+cd wanttodo-miniapp
 ```
 
 ### 2. 启动后端
