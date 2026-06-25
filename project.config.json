@@ -1,8 +1,7 @@
 {
   "miniprogramRoot": "miniprogram/",
-  "cloudfunctionRoot": "cloudfunctions/",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "es6": true,
     "enhance": true,
     "postcss": true,
@@ -45,9 +44,8 @@
     "disableSWC": true
   },
   "appid": "touristappid",
-  "projectname": "quickstart-wx-cloud",
+  "projectname": "wanttodo",
   "libVersion": "2.20.1",
-  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {
     "search": {
       "list": []
