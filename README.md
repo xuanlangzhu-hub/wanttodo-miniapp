@@ -15,15 +15,19 @@
 
 ## 📸 截图预览
 
-以下截图展示核心使用流程：工作台、内容池、智能整理、卡片详情、回收站和个人中心。
+以下截图展示核心使用流程：工作台、内容池、分类、卡片详情、智能整理、新建卡片、回收站和个人中心。
 
 <p align="center">
   <img src="docs/screenshots/screenshot-workbench.png" width="240" alt="工作台">
   <img src="docs/screenshots/screenshot-content-pool.png" width="240" alt="内容池">
-  <img src="docs/screenshots/screenshot-organize.png" width="240" alt="智能整理">
+  <img src="docs/screenshots/screenshot-category.png" width="240" alt="分类">
 </p>
 <p align="center">
   <img src="docs/screenshots/screenshot-detail.png" width="240" alt="卡片详情">
+  <img src="docs/screenshots/screenshot-organize.png" width="240" alt="智能整理">
+  <img src="docs/screenshots/screenshot-new-card.png" width="240" alt="新建卡片">
+</p>
+<p align="center">
   <img src="docs/screenshots/screenshot-recycle.png" width="240" alt="回收站">
   <img src="docs/screenshots/screenshot-profile.png" width="240" alt="我的页面">
 </p>
