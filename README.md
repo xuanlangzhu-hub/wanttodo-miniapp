@@ -1,15 +1,11 @@
 # WantTodo — 微信小程序「AI 知识卡片」
 
 <p align="center">
-  <img src="" width="200" alt="WantTodo Logo">
-</p>
-
-<p align="center">
   <strong>📇 个人学习材料整理工具 · 暗色卡片体验 · AI 智能整理</strong>
 </p>
 
 <p align="center">
-  <img alt="License" src="https://img.shields.io/github/license/xuanlangzhu-hub/WantTodo">
+  <img alt="License" src="https://img.shields.io/github/license/xuanlangzhu-hub/myfirstWXapp">
   <img alt="Platform" src="https://img.shields.io/badge/platform-WeChat%20MiniProgram-brightgreen">
   <img alt="Backend" src="https://img.shields.io/badge/backend-ASP.NET%2010-blue">
   <img alt="Database" src="https://img.shields.io/badge/database-SQLite-lightgrey">
@@ -19,16 +15,7 @@
 
 ## 📸 截图预览
 
-> **你需要在这里放 6 张截图**，建议用微信开发者工具的截图功能，尺寸统一 375×812。
-
-| 位置 | 截图内容 | 替换指令 |
-|------|---------|----------|
-| 工作台首页 | 展示待整理数量、最近整理、常用标签入口 | 替换下方 `screenshot-workbench.png` |
-| 内容池列表 | 展示卡片列表，带状态标签搜索 | 替换下方 `screenshot-content-pool.png` |
-| 智能整理 | 粘贴原文后 AI 返回建议标题/摘要/标签 | 替换下方 `screenshot-organize.png` |
-| 卡片详情 | 单张知识卡片的完整展示 | 替换下方 `screenshot-detail.png` |
-| 回收站 | 已删除卡片的恢复/彻底删除 | 替换下方 `screenshot-recycle.png` |
-| 我的页面 | 个人中心/统计 | 替换下方 `screenshot-profile.png` |
+以下截图展示核心使用流程：工作台、内容池、智能整理、卡片详情、回收站和个人中心。
 
 <p align="center">
   <img src="docs/screenshots/screenshot-workbench.png" width="240" alt="工作台">
@@ -82,6 +69,7 @@ wanttodo/
 │   │   ├── card-form/        # 新建/编辑卡片
 │   │   ├── card-detail/      # 卡片详情
 │   │   ├── recycle-bin/      # 回收站
+│   │   ├── privacy-policy/   # 隐私政策
 │   │   └── profile/          # 我的页面
 │   ├── components/           # 公共组件
 │   ├── services/             # API 调用封装
@@ -109,8 +97,8 @@ wanttodo/
 ### 1. 克隆仓库
 
 ```bash
-git clone git@github.com:xuanlangzhu-hub/WantTodo.git
-cd WantTodo
+git clone git@github.com:xuanlangzhu-hub/myfirstWXapp.git
+cd myfirstWXapp
 ```
 
 ### 2. 启动后端
