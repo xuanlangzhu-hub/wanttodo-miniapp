@@ -34,6 +34,10 @@ public class CardsController : ControllerBase
 
     private static readonly HashSet<string> ValidStatuses = new() { "todo", "done", "archived" };
 
+    private int MaxCardsPerUser => Math.Max(1, _config.GetValue("Limits:MaxCardsPerUser", 100));
+    private int MaxOrganizePerCard => Math.Max(1, _config.GetValue("Limits:MaxOrganizePerCard", 2));
+    private int MaxDailyOrganizePerUser => Math.Max(1, _config.GetValue("Limits:MaxDailyOrganizePerUser", 10));
+
     // ═══════════════════════════════════════════
     // 4.1  GET /cards  卡片列表
     // ═══════════════════════════════════════════
@@ -107,6 +111,25 @@ public class CardsController : ControllerBase
     }
 
     // ═══════════════════════════════════════════
+    // GET /cards/quota  当前用户的终身卡片与每日 AI 额度
+    // ═══════════════════════════════════════════
+    [HttpGet("quota")]
+    public async Task<ActionResult<ApiResponse<object>>> GetQuota()
+    {
+        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == UserId);
+        if (user == null)
+            return Unauthorized(ApiResponse<object>.Unauthorized());
+
+        var clock = GetQuotaClock();
+        var dailyCount = await _db.DailyAiUsages.AsNoTracking()
+            .Where(x => x.UserId == UserId && x.UsageDate == clock.DateKey)
+            .Select(x => x.Count)
+            .FirstOrDefaultAsync();
+
+        return Ok(ApiResponse<object>.Ok(BuildQuotaResponse(user.TotalCardsCreated, dailyCount, clock.ResetAt)));
+    }
+
+    // ═══════════════════════════════════════════
     // 4.3  POST /cards  创建卡片
     // ═══════════════════════════════════════════
     [HttpPost]
@@ -114,6 +137,19 @@ public class CardsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
             return BadRequest(ApiResponse<object>.BadRequest("title 不能为空"));
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        var reserved = await _db.Users
+            .Where(u => u.Id == UserId && u.TotalCardsCreated < MaxCardsPerUser)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(u => u.TotalCardsCreated, u => u.TotalCardsCreated + 1));
+
+        if (reserved == 0)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(StatusCodes.Status409Conflict,
+                ApiResponse<object>.Fail(409, $"累计创建卡片已达 {MaxCardsPerUser} 张上限"));
+        }
 
         var srcUrl = dto.SourceUrl ?? "";
         var card = new KnowledgeCard
@@ -129,6 +165,7 @@ public class CardsController : ControllerBase
 
         _db.Cards.Add(card);
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return Ok(ApiResponse<object>.Ok(MapToResponse(card)));
     }
@@ -355,10 +392,10 @@ public class CardsController : ControllerBase
     }
 
     // ═══════════════════════════════════════════
-    // 4.3.1  POST /cards/organize  智能整理
+    // 4.3.1  POST /cards/{id}/organize  智能整理
     // ═══════════════════════════════════════════
-    [HttpPost("organize")]
-    public async Task<ActionResult<ApiResponse<OrganizeResultDto>>> Organize(OrganizeDto dto)
+    [HttpPost("{id}/organize")]
+    public async Task<ActionResult<ApiResponse<OrganizeResultDto>>> Organize(string id, OrganizeDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.SourceText))
             return BadRequest(ApiResponse<OrganizeResultDto>.BadRequest("sourceText 不能为空"));
@@ -367,9 +404,68 @@ public class CardsController : ControllerBase
         if (string.IsNullOrWhiteSpace(apiKey))
             return StatusCode(500, ApiResponse<OrganizeResultDto>.Fail(500, "智能整理服务未配置"));
 
+        var clock = GetQuotaClock();
+        await using (var transaction = await _db.Database.BeginTransactionAsync())
+        {
+            var cardReserved = await _db.Cards
+                .Where(c => c.Id == id
+                    && c.UserId == UserId
+                    && c.DeletedAt == null
+                    && c.OrganizeCount < MaxOrganizePerCard)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.OrganizeCount, c => c.OrganizeCount + 1));
+
+            if (cardReserved == 0)
+            {
+                await transaction.RollbackAsync();
+                var exists = await _db.Cards.AsNoTracking()
+                    .AnyAsync(c => c.Id == id && c.UserId == UserId && c.DeletedAt == null);
+                if (!exists)
+                    return NotFound(ApiResponse<OrganizeResultDto>.NotFound("卡片不存在"));
+
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    ApiResponse<OrganizeResultDto>.Fail(429, $"每张卡片最多智能整理 {MaxOrganizePerCard} 次"));
+            }
+
+            var dailyReserved = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                INSERT INTO "DailyAiUsages" ("UserId", "UsageDate", "Count", "UpdatedAt")
+                VALUES ({UserId}, {clock.DateKey}, 1, {DateTime.UtcNow})
+                ON CONFLICT("UserId", "UsageDate") DO UPDATE SET
+                    "Count" = "Count" + 1,
+                    "UpdatedAt" = excluded."UpdatedAt"
+                WHERE "Count" < {MaxDailyOrganizePerUser};
+                """);
+
+            if (dailyReserved == 0)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    ApiResponse<OrganizeResultDto>.Fail(
+                        429,
+                        $"今日智能整理次数已用完，将于北京时间 {clock.ResetAt:MM-dd HH:mm} 刷新"));
+            }
+
+            await transaction.CommitAsync();
+        }
+
         try
         {
             var result = await CallDeepSeek(dto, apiKey);
+            var organizeCount = await _db.Cards.AsNoTracking()
+                .Where(c => c.Id == id && c.UserId == UserId)
+                .Select(c => c.OrganizeCount)
+                .FirstAsync();
+            var dailyCount = await _db.DailyAiUsages.AsNoTracking()
+                .Where(x => x.UserId == UserId && x.UsageDate == clock.DateKey)
+                .Select(x => x.Count)
+                .FirstAsync();
+
+            result.CardId = id;
+            result.OrganizeCount = organizeCount;
+            result.OrganizeRemaining = Math.Max(0, MaxOrganizePerCard - organizeCount);
+            result.DailyRemaining = Math.Max(0, MaxDailyOrganizePerUser - dailyCount);
+            result.DailyResetAt = clock.ResetAt.ToString("O");
             return Ok(ApiResponse<OrganizeResultDto>.Ok(result));
         }
         catch (TaskCanceledException)
@@ -476,7 +572,8 @@ public class CardsController : ControllerBase
             max_tokens = 1024
         };
 
-        var response = await client.PostAsJsonAsync("https://api.deepseek.com/chat/completions", requestBody);
+        var apiUrl = _config["DeepSeek:ApiUrl"] ?? "https://api.deepseek.com/chat/completions";
+        var response = await client.PostAsJsonAsync(apiUrl, requestBody);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<DeepSeekResponse>();
@@ -519,7 +616,7 @@ public class CardsController : ControllerBase
     private static bool TextContains(string? source, string keyword) =>
         !string.IsNullOrEmpty(source) && source.Contains(keyword, StringComparison.OrdinalIgnoreCase);
 
-    private static object MapToResponse(KnowledgeCard c) => new
+    private object MapToResponse(KnowledgeCard c) => new
     {
         c.Id,
         c.UserId,
@@ -529,8 +626,58 @@ public class CardsController : ControllerBase
         c.SourceUrl,
         tags = c.GetTags(),
         c.Status,
+        c.OrganizeCount,
+        organizeRemaining = Math.Max(0, MaxOrganizePerCard - c.OrganizeCount),
         c.CreatedAt,
         c.UpdatedAt,
         c.DeletedAt
     };
+
+    private object BuildQuotaResponse(int totalCardsCreated, int dailyCount, DateTimeOffset resetAt) => new
+    {
+        cardQuota = new
+        {
+            created = totalCardsCreated,
+            limit = MaxCardsPerUser,
+            remaining = Math.Max(0, MaxCardsPerUser - totalCardsCreated),
+            reached = totalCardsCreated >= MaxCardsPerUser
+        },
+        aiQuota = new
+        {
+            usedToday = dailyCount,
+            dailyLimit = MaxDailyOrganizePerUser,
+            remainingToday = Math.Max(0, MaxDailyOrganizePerUser - dailyCount),
+            resetAt = resetAt.ToString("O")
+        }
+    };
+
+    private (string DateKey, DateTimeOffset ResetAt) GetQuotaClock()
+    {
+        var configuredId = _config["Limits:TimeZoneId"] ?? "Asia/Shanghai";
+        TimeZoneInfo timeZone;
+        try
+        {
+            timeZone = TimeZoneInfo.FindSystemTimeZoneById(configuredId);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            try
+            {
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
+            }
+            catch (Exception fallbackEx) when (fallbackEx is TimeZoneNotFoundException or InvalidTimeZoneException)
+            {
+                timeZone = TimeZoneInfo.CreateCustomTimeZone(
+                    "Asia/Shanghai",
+                    TimeSpan.FromHours(8),
+                    "China Standard Time",
+                    "China Standard Time");
+            }
+        }
+
+        var localNow = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
+        var tomorrow = localNow.Date.AddDays(1);
+        var resetAt = new DateTimeOffset(tomorrow, timeZone.GetUtcOffset(tomorrow));
+        return (localNow.ToString("yyyy-MM-dd"), resetAt);
+    }
 }

@@ -15,6 +15,7 @@ public class KnowledgeCard
     public string TagsJson { get; set; } = "[]";
 
     public string Status { get; set; } = "todo"; // todo / done / archived
+    public int OrganizeCount { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

@@ -7,6 +7,8 @@ public class User
     public string Nickname { get; set; } = string.Empty;
     public string AvatarUrl { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int TotalCardsCreated { get; set; }
 
     public ICollection<KnowledgeCard> Cards { get; set; } = new List<KnowledgeCard>();
+    public ICollection<DailyAiUsage> DailyAiUsages { get; set; } = new List<DailyAiUsage>();
 }

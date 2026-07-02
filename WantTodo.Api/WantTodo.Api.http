@@ -30,6 +30,20 @@ Authorization: Bearer <Token>
 GET {{HostAddress}}/api/v1/cards/{id}
 Authorization: Bearer <Token>
 
+### 当前额度
+GET {{HostAddress}}/api/v1/cards/quota
+Authorization: Bearer <Token>
+
+### 智能整理（每张卡片最多 2 次）
+POST {{HostAddress}}/api/v1/cards/{id}/organize
+Authorization: Bearer <Token>
+Content-Type: application/json
+
+{
+  "sourceText": "需要整理的学习材料",
+  "sourceUrl": "https://example.com"
+}
+
 ### 更新卡片
 PATCH {{HostAddress}}/api/v1/cards/{id}
 Authorization: Bearer <Token>

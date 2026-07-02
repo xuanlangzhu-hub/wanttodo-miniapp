@@ -10,8 +10,13 @@ public class OrganizeDto
 // 智能整理响应
 public class OrganizeResultDto
 {
+    public string CardId { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Summary { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
     public string Status { get; set; } = "todo";
+    public int OrganizeCount { get; set; }
+    public int OrganizeRemaining { get; set; }
+    public int DailyRemaining { get; set; }
+    public string DailyResetAt { get; set; } = string.Empty;
 }
