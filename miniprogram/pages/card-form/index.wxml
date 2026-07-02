@@ -4,7 +4,9 @@
       <view class="back-icon"></view>
     </view>
     <view class="nav-title">{{mode === 'edit' ? '编辑卡片' : '新建卡片'}}</view>
-    <view class="nav-save" bindtap="onSaveTap">保存</view>
+    <view class="nav-save {{saving ? 'disabled' : ''}}" bindtap="onSaveTap">
+      {{saving ? '保存中' : '保存'}}
+    </view>
   </view>
 
   <view class="form-wrap" style="padding-top: {{contentTop}}px;">
@@ -50,10 +52,15 @@
       <view class="organize-panel">
         <view class="organize-copy">
           <view class="organize-title">智能整理</view>
-          <view class="organize-subtitle">根据内容生成标题、摘要和建议标签</view>
+          <view class="organize-subtitle">
+            本卡剩余 {{organizeRemaining}} 次 · 今日剩余 {{dailyRemaining}} 次
+          </view>
         </view>
-        <view class="organize-button {{organizing ? 'disabled' : ''}}" bindtap="onOrganizeTap">
-          {{organizing ? '整理中' : '提取摘要'}}
+        <view
+          class="organize-button {{organizing ? 'disabled' : ''}} {{organizeRemaining <= 0 || dailyRemaining <= 0 ? 'exhausted' : ''}}"
+          bindtap="onOrganizeTap"
+        >
+          {{organizing ? '整理中' : (organizeRemaining <= 0 || dailyRemaining <= 0 ? '次数已用完' : '提取摘要')}}
         </view>
       </view>
 
@@ -140,6 +147,13 @@
   </view>
 
   <view class="bottom-action">
-    <button class="save-button" bindtap="onSaveTap">保存</button>
+    <button
+      class="save-button"
+      loading="{{saving}}"
+      disabled="{{saving || (mode === 'create' && cardQuotaRemaining <= 0)}}"
+      bindtap="onSaveTap"
+    >
+      {{mode === 'create' && cardQuotaRemaining <= 0 ? '已达100张上限' : '保存'}}
+    </button>
   </view>
 </view>

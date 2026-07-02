@@ -18,6 +18,11 @@ Page({
     loggedIn: false,
     mode: "create",
     organizing: false,
+    saving: false,
+    organizeRemaining: 2,
+    dailyRemaining: 10,
+    cardQuotaRemaining: 100,
+    dailyResetAt: "",
     presetTags: [],
     presetTagItems: [],
     selectedTags: [],
@@ -52,6 +57,13 @@ Page({
       this.loadCard(options.id);
     }
     this.loadPresetTags();
+    this.loadQuota();
+  },
+
+  onShow() {
+    if (this.data.loggedIn) {
+      this.loadQuota();
+    }
   },
 
   setNavMetrics() {
@@ -93,6 +105,7 @@ Page({
           status: card.status || "todo",
         },
         selectedTags: card.tags || [],
+        organizeRemaining: Number.isFinite(card.organizeRemaining) ? card.organizeRemaining : 2,
       });
       this.updatePresetTagItems(card.tags || [], this.data.presetTags);
     } catch (error) {
@@ -142,6 +155,19 @@ Page({
       return;
     }
 
+    if (this.data.organizeRemaining <= 0) {
+      wx.showToast({ title: "本卡整理次数已用完", icon: "none" });
+      return;
+    }
+
+    if (this.data.dailyRemaining <= 0) {
+      await this.loadQuota();
+      if (this.data.dailyRemaining <= 0) {
+        wx.showToast({ title: "今日整理次数已用完", icon: "none" });
+        return;
+      }
+    }
+
     const sourceText = this.data.form.sourceText.trim();
     if (!sourceText) {
       wx.showToast({ title: "请先填写内容", icon: "none" });
@@ -150,7 +176,8 @@ Page({
 
     this.setData({ organizing: true });
     try {
-      const result = await cardApi.organizeCard({
+      const cardId = await this.ensureCardForOrganize();
+      const result = await cardApi.organizeCard(cardId, {
         sourceText,
         sourceUrl: this.data.form.sourceUrl.trim(),
       });
@@ -163,17 +190,36 @@ Page({
         selectedTags: splitTags(nextTags),
         presetTagItems: this.formatPresetTagItems(this.data.presetTags, splitTags(nextTags)),
         "form.status": result.status || this.data.form.status || "todo",
+        organizeRemaining: Number.isFinite(result.organizeRemaining)
+          ? result.organizeRemaining
+          : Math.max(0, this.data.organizeRemaining - 1),
+        dailyRemaining: Number.isFinite(result.dailyRemaining)
+          ? result.dailyRemaining
+          : Math.max(0, this.data.dailyRemaining - 1),
+        dailyResetAt: result.dailyResetAt || this.data.dailyResetAt,
       });
       wx.showToast({ title: "已生成整理建议", icon: "success" });
     } catch (error) {
-      this.showError(error);
+      if (!error.silent) {
+        await this.refreshUsageQuota();
+        this.showError(error);
+      }
     } finally {
       this.setData({ organizing: false });
     }
   },
 
   async onSaveTap() {
+    if (this.data.saving) {
+      return;
+    }
+
     if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    if (this.data.mode === "create" && this.data.cardQuotaRemaining <= 0) {
+      wx.showToast({ title: "已达100张创建上限", icon: "none" });
       return;
     }
 
@@ -193,6 +239,7 @@ Page({
       status: form.status,
     };
 
+    this.setData({ saving: true });
     try {
       let card;
       if (this.data.mode === "edit") {
@@ -215,6 +262,96 @@ Page({
       }, 350);
     } catch (error) {
       this.showError(error);
+    } finally {
+      this.setData({ saving: false });
+    }
+  },
+
+  async ensureCardForOrganize() {
+    if (this.data.id) {
+      return this.data.id;
+    }
+
+    if (this.data.cardQuotaRemaining <= 0) {
+      throw { message: "累计创建卡片已达100张上限" };
+    }
+
+    const confirmed = await this.confirmDraftCreation();
+    if (!confirmed) {
+      throw { silent: true };
+    }
+
+    const form = this.data.form;
+    const draftTitle = form.title.trim() || "待整理卡片";
+    const card = await cardApi.createCard({
+      title: draftTitle,
+      sourceText: form.sourceText.trim(),
+      summary: form.summary.trim(),
+      sourceUrl: form.sourceUrl.trim(),
+      tags: splitTags(form.tagsText),
+      status: form.status,
+    });
+
+    if (!card || !card.id) {
+      throw { message: "创建卡片失败，请稍后重试" };
+    }
+
+    this.setData({
+      id: card.id,
+      mode: "edit",
+      "form.title": draftTitle,
+      cardQuotaRemaining: Math.max(0, this.data.cardQuotaRemaining - 1),
+      organizeRemaining: Number.isFinite(card.organizeRemaining) ? card.organizeRemaining : 2,
+    });
+    wx.setNavigationBarTitle({ title: "编辑卡片" });
+    return card.id;
+  },
+
+  confirmDraftCreation() {
+    return new Promise((resolve) => {
+      wx.showModal({
+        title: "创建并智能整理",
+        content: "首次整理会自动创建这张卡片，并计入100张终身创建额度；删除后额度也不会恢复。",
+        confirmText: "继续整理",
+        confirmColor: "#ff7966",
+        success: (result) => resolve(Boolean(result.confirm)),
+        fail: () => resolve(false),
+      });
+    });
+  },
+
+  async loadQuota() {
+    if (!this.ensureLoggedIn(false)) {
+      return;
+    }
+
+    try {
+      const quota = await cardApi.getQuota();
+      const cardQuota = quota.cardQuota || {};
+      const aiQuota = quota.aiQuota || {};
+      this.setData({
+        cardQuotaRemaining: Number.isFinite(cardQuota.remaining) ? cardQuota.remaining : 100,
+        dailyRemaining: Number.isFinite(aiQuota.remainingToday) ? aiQuota.remainingToday : 10,
+        dailyResetAt: aiQuota.resetAt || "",
+      });
+    } catch (error) {
+      // 后端仍会执行最终额度校验。
+    }
+  },
+
+  async refreshUsageQuota() {
+    await this.loadQuota();
+    if (!this.data.id) {
+      return;
+    }
+
+    try {
+      const card = await cardApi.getCard(this.data.id);
+      if (Number.isFinite(card.organizeRemaining)) {
+        this.setData({ organizeRemaining: card.organizeRemaining });
+      }
+    } catch (error) {
+      // 保留当前页面内容，由后端继续执行最终额度校验。
     }
   },
 

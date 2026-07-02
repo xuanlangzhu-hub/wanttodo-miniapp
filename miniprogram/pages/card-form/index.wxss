@@ -248,6 +248,11 @@ page {
   padding-left: 48rpx;
 }
 
+.organize-button.exhausted {
+  box-shadow: none;
+  opacity: 0.48;
+}
+
 .organize-button.disabled::before {
   animation: organizeSpin 820ms linear infinite;
   border: 4rpx solid rgba(255, 255, 255, 0.28);
@@ -382,6 +387,17 @@ page {
 
 .save-button::after {
   border: 0;
+}
+
+.nav-save.disabled {
+  opacity: 0.5;
+}
+
+.save-button[disabled] {
+  background: #353545;
+  box-shadow: none;
+  color: #9292a6;
+  opacity: 1;
 }
 
 @keyframes organizeSpin {

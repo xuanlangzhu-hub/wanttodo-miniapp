@@ -61,6 +61,16 @@
         <view class="status-label">已归档</view>
       </view>
     </view>
+    <view class="quota-list">
+      <view class="quota-row">
+        <text>累计创建额度</text>
+        <text>{{totalCardsCreated}} / {{cardLimit}}</text>
+      </view>
+      <view class="quota-row">
+        <text>今日智能整理剩余</text>
+        <text>{{dailyAiRemaining}} / {{dailyAiLimit}}</text>
+      </view>
+    </view>
   </view>
 
   <view class="menu-card">

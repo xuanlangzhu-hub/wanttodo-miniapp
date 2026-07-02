@@ -1,6 +1,6 @@
 Page({
   data: {
-    updatedAt: "2026-06-18",
+    updatedAt: "2026-07-02",
   },
 
   onBackTap() {

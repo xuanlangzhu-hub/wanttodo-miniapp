@@ -187,6 +187,17 @@
   color: #a2a2b5;
 }
 
+.nav-create.disabled .create-button {
+  animation: none;
+  background: #353545;
+  box-shadow: none;
+  color: #9292a6;
+}
+
+.nav-create.disabled .create-label {
+  color: #727287;
+}
+
 @keyframes createPulse {
   0%,
   100% {

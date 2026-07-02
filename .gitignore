@@ -19,6 +19,7 @@ Thumbs.db
 *.swo
 *~
 .vscode/settings.json
+project.private.config.json
 
 # 日志
 *.log

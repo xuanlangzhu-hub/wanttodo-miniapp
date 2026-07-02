@@ -202,6 +202,26 @@ page {
   margin-top: 8rpx;
 }
 
+.quota-list {
+  border-top: 1rpx solid rgba(131, 131, 156, 0.18);
+  margin-top: 18rpx;
+  padding-top: 14rpx;
+}
+
+.quota-row {
+  align-items: center;
+  color: #a2a2b5;
+  display: flex;
+  font-size: 23rpx;
+  justify-content: space-between;
+  min-height: 46rpx;
+}
+
+.quota-row text:last-child {
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .menu-card {
   margin-top: 24rpx;
   padding: 8rpx 26rpx;

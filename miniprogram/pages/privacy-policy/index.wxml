@@ -17,8 +17,7 @@
     <view class="section">
       <view class="section-title">一、我们收集的信息</view>
       <view class="paragraph">为了提供小程序的基础功能，我们可能收集和使用以下信息：</view>
-      <view class="bullet">微信登录凭证，用于创建和识别你的账号。</view>
-      <view class="bullet">头像、昵称等微信公开资料，用于展示个人资料。</view>
+      <view class="bullet">微信登录产生的用户标识，用于创建和识别你的账号。</view>
       <view class="bullet">你主动创建或编辑的知识卡片内容，包括标题、原文、摘要、来源链接、标签和整理状态。</view>
       <view class="bullet">学习统计信息，例如卡片数量、标签数量、待整理和已整理数量。</view>
     </view>
@@ -35,7 +34,7 @@
 
     <view class="section">
       <view class="section-title">四、第三方共享</view>
-      <view class="paragraph">除微信登录所需能力和服务器基础服务外，我们不会主动向无关第三方出售、出租或共享你的个人信息。如因法律法规、监管要求或安全保护需要提供信息，我们会在合法范围内处理。</view>
+      <view class="paragraph">当你主动使用“智能整理”功能时，你提交的卡片正文和来源链接会通过服务器发送给 DeepSeek 服务，用于生成标题、摘要和标签建议。除微信登录、服务器托管及上述智能整理所需处理外，我们不会主动向无关第三方出售、出租或共享你的个人信息。如因法律法规、监管要求或安全保护需要提供信息，我们会在合法范围内处理。</view>
     </view>
 
     <view class="section">

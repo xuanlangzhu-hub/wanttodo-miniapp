@@ -20,6 +20,10 @@ Page({
     archived: 0,
     deleted: 0,
     tagCount: 0,
+    totalCardsCreated: 0,
+    cardLimit: 100,
+    dailyAiRemaining: 10,
+    dailyAiLimit: 10,
     loggingIn: false,
   },
 
@@ -48,10 +52,13 @@ Page({
     }
 
     try {
-      const [overview, tags] = await Promise.all([
+      const [overview, tags, quota] = await Promise.all([
         cardApi.getOverview(),
         cardApi.getTags(),
+        cardApi.getQuota(),
       ]);
+      const cardQuota = quota.cardQuota || {};
+      const aiQuota = quota.aiQuota || {};
       this.setData({
         total: (overview.todoCount || 0) + (overview.doneCount || 0) + (overview.archivedCount || 0),
         pending: overview.todoCount || 0,
@@ -59,6 +66,10 @@ Page({
         archived: overview.archivedCount || 0,
         deleted: overview.deletedCount || 0,
         tagCount: (tags || []).length,
+        totalCardsCreated: cardQuota.created || 0,
+        cardLimit: cardQuota.limit || 100,
+        dailyAiRemaining: Number.isFinite(aiQuota.remainingToday) ? aiQuota.remainingToday : 10,
+        dailyAiLimit: aiQuota.dailyLimit || 10,
       });
     } catch (error) {
       wx.showToast({
@@ -185,6 +196,10 @@ Page({
       archived: 0,
       deleted: 0,
       tagCount: 0,
+      totalCardsCreated: 0,
+      cardLimit: 100,
+      dailyAiRemaining: 10,
+      dailyAiLimit: 10,
     });
   },
 

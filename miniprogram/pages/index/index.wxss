@@ -138,6 +138,12 @@ page {
   width: 166rpx;
 }
 
+.hero-button.disabled {
+  background: #353545;
+  box-shadow: none;
+  color: #9292a6;
+}
+
 .hero-button text {
   font-size: 24rpx;
   margin-left: 10rpx;

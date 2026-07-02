@@ -52,13 +52,18 @@ const createCard = (card) =>
     showLoading: true,
   });
 
-const organizeCard = (payload) =>
+const organizeCard = (id, payload) =>
   request({
-    path: "/cards/organize",
+    path: `/cards/${id}/organize`,
     method: "POST",
     data: payload,
     showLoading: true,
     timeout: 30000,
+  });
+
+const getQuota = () =>
+  request({
+    path: "/cards/quota",
   });
 
 const updateCard = (id, patch) =>
@@ -142,6 +147,7 @@ module.exports = {
   getCard,
   createCard,
   organizeCard,
+  getQuota,
   updateCard,
   deleteCard,
   getDeletedCards,

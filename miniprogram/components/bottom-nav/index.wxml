@@ -16,9 +16,9 @@
       <view class="nav-label">卡片</view>
     </view>
 
-    <view class="nav-create" bindtap="onCreateTap">
+    <view class="nav-create {{cardLimitReached ? 'disabled' : ''}}" bindtap="onCreateTap">
       <view class="create-button">+</view>
-      <view class="nav-label create-label">新建</view>
+      <view class="nav-label create-label">{{cardLimitReached ? '已满' : '新建'}}</view>
     </view>
 
     <view class="nav-item {{active === 'pending' ? 'active' : ''}}" data-key="pending" bindtap="onNavTap">

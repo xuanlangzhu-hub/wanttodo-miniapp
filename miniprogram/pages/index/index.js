@@ -46,6 +46,7 @@ Page({
     loading: false,
     loggingIn: false,
     loggedIn: false,
+    cardLimitReached: false,
     userInfo: null,
     avatarText: "我",
   },
@@ -61,6 +62,7 @@ Page({
     this.syncAuthState();
     if (this.data.loggedIn) {
       this.loadCards(false);
+      this.loadQuota();
     }
   },
 
@@ -106,8 +108,14 @@ Page({
     }
   },
 
-  onCreateTap() {
+  async onCreateTap() {
     if (!this.ensureLoggedIn()) {
+      return;
+    }
+
+    await this.loadQuota();
+    if (this.data.cardLimitReached) {
+      wx.showToast({ title: "累计创建卡片已达100张上限", icon: "none" });
       return;
     }
 
@@ -123,6 +131,23 @@ Page({
     }
 
     this.onCreateTap();
+  },
+
+  async loadQuota() {
+    if (!this.data.loggedIn) {
+      this.setData({ cardLimitReached: false });
+      return null;
+    }
+
+    try {
+      const quota = await cardApi.getQuota();
+      this.setData({
+        cardLimitReached: Boolean(quota.cardQuota && quota.cardQuota.reached),
+      });
+      return quota;
+    } catch (error) {
+      return null;
+    }
   },
 
   onSearchInput(event) {

@@ -16,7 +16,9 @@
       <view class="hero-kicker">学习记录</view>
       <view class="hero-title">AI知识卡片</view>
       <view class="hero-subtitle">整理概念、提示词、工具，构建你的专属知识库</view>
-      <view class="hero-button" bindtap="onHeroActionTap">{{loggedIn ? '开始整理' : '登录开始'}}<text>→</text></view>
+      <view class="hero-button {{cardLimitReached ? 'disabled' : ''}}" bindtap="onHeroActionTap">
+        {{!loggedIn ? '登录开始' : (cardLimitReached ? '已达100张上限' : '开始整理')}}<text wx:if="{{!cardLimitReached}}">→</text>
+      </view>
     </view>
     <view class="hero-art" aria-hidden="true">
       <view class="orbit orbit-one"></view>
