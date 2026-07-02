@@ -1,4 +1,4 @@
-# API 接口约定 v0.4
+# API 接口约定 v0.5
 
 > **状态：已确认** | 微信小程序前端（Codex）↔ ASP.NET 后端（DeepSeek）
 
@@ -10,7 +10,7 @@
 |------|------|
 | 本地开发 | `http://localhost:5000/api/v1` |
 | 真机调试 | 局域网 IP 或内网穿透，`config.js` 中切换 |
-| 正式部署 | `https://<你的域名>/api/v1`（待部署时确认） |
+| 正式部署 | `https://www.ccosia.cn/api/v1` |
 | 请求格式 | `application/json; charset=utf-8` |
 | 鉴权方式 | Header `Authorization: Bearer <token>` |
 | 时间格式 | ISO 8601（`2026-06-16T15:30:00+08:00`） |
@@ -106,6 +106,8 @@ POST /auth/wechat-login
 | sourceUrl | string | 否 | 来源链接，默认 `""` |
 | tags | string[] | 否 | 标签列表，默认 `[]` |
 | status | string | 是 | `todo` / `done` / `archived` |
+| organizeCount | int | 是 | 已使用的智能整理次数 |
+| organizeRemaining | int | 是 | 本卡剩余智能整理次数 |
 | createdAt | string | 是 | ISO 8601 时间 |
 | updatedAt | string | 是 | ISO 8601 时间 |
 | deletedAt | string? | 否 | ISO 8601 时间；未删除时为 `null` |
@@ -141,6 +143,8 @@ POST /auth/wechat-login
   "sourceUrl": "https://example.com/article",
   "tags": ["AI", "工具"],
   "status": "todo",
+  "organizeCount": 1,
+  "organizeRemaining": 1,
   "createdAt": "2026-06-16T15:30:00+08:00",
   "updatedAt": "2026-06-16T15:30:00+08:00",
   "deletedAt": null
@@ -254,6 +258,9 @@ POST /cards
 - 后端从 token 解析当前用户
 - `sourceText` / `summary` / `sourceUrl` 未传时按 `""` 保存
 - `tags` 未传时按 `[]` 保存
+- 每个用户终身累计最多创建 100 张卡片
+- 软删除、恢复或彻底删除均不返还创建额度
+- 新建表单首次使用智能整理时，前端先创建草稿卡片，再调用整理接口
 
 成功响应：`HTTP 200`
 
@@ -274,15 +281,25 @@ POST /cards
 }
 ```
 
+达到终身创建上限：`HTTP 409`
+
+```json
+{
+  "code": 409,
+  "message": "累计创建卡片已达 100 张上限",
+  "data": null
+}
+```
+
 ---
 
-### 4.3.1 智能整理卡片草稿
+### 4.3.1 智能整理卡片
 
 ```
-POST /cards/organize
+POST /cards/{id}/organize
 ```
 
-用途：根据用户粘贴的学习材料，返回可编辑的卡片草稿建议。
+用途：根据指定卡片的学习材料，返回可编辑的标题、摘要和标签建议。
 
 请求：
 
@@ -302,9 +319,12 @@ POST /cards/organize
 
 规则：
 
-- 该接口只返回建议，不创建卡片
-- 前端拿到结果后填充新建 / 编辑表单
-- 用户确认后仍调用 `POST /cards` 保存
+- 卡片必须已创建且属于当前用户
+- 每张卡片终身最多调用 2 次
+- 每个用户每天最多调用 10 次，按北京时间 `00:00` 刷新
+- 额度由后端计算并强制执行，不使用客户端时间
+- 请求一旦被后端接受并准备调用 AI，即消耗一次额度；AI 超时或失败也不返还
+- 前端拿到结果后填充编辑表单，用户确认后调用 `PATCH /cards/{id}` 保存
 - 标签建议优先从预设标签中选择
 - 不抓取公共内容，不生成公共信息流
 
@@ -314,10 +334,15 @@ POST /cards/organize
 {
   "code": 200,
   "data": {
+    "cardId": "card_a1b2c3",
     "title": "RAG 检索增强生成",
     "summary": "RAG 将外部知识检索与模型生成结合，用于提升回答的准确性和可追溯性。",
     "tags": ["RAG知识", "模型基础"],
-    "status": "todo"
+    "status": "todo",
+    "organizeCount": 1,
+    "organizeRemaining": 1,
+    "dailyRemaining": 9,
+    "dailyResetAt": "2026-07-03T00:00:00+08:00"
   }
 }
 ```
@@ -329,6 +354,46 @@ POST /cards/organize
   "code": 400,
   "message": "sourceText 不能为空",
   "data": null
+}
+```
+
+额度用尽：`HTTP 429`
+
+```json
+{
+  "code": 429,
+  "message": "每张卡片最多智能整理 2 次",
+  "data": null
+}
+```
+
+---
+
+### 4.3.2 获取额度
+
+```
+GET /cards/quota
+```
+
+成功响应：`HTTP 200`
+
+```json
+{
+  "code": 200,
+  "data": {
+    "cardQuota": {
+      "created": 12,
+      "limit": 100,
+      "remaining": 88,
+      "reached": false
+    },
+    "aiQuota": {
+      "usedToday": 3,
+      "dailyLimit": 10,
+      "remainingToday": 7,
+      "resetAt": "2026-07-03T00:00:00+08:00"
+    }
+  }
 }
 ```
 
@@ -724,7 +789,8 @@ GET /user/profile
 | GET | `/cards` | 卡片列表，支持搜索、状态、标签、排序、分页 |
 | GET | `/cards/{id}` | 卡片详情 |
 | POST | `/cards` | 创建卡片 |
-| POST | `/cards/organize` | 智能整理卡片草稿 |
+| POST | `/cards/{id}/organize` | 智能整理指定卡片 |
+| GET | `/cards/quota` | 获取终身创建和每日 AI 额度 |
 | PATCH | `/cards/{id}` | 更新卡片 |
 | PATCH | `/cards/{id}/archive` | 归档卡片 |
 | DELETE | `/cards/{id}` | 软删除卡片 |
@@ -739,4 +805,4 @@ GET /user/profile
 
 ---
 
-> 本文档即为开发契约 v0.4。后续新增能力前，先更新产品契约，再同步接口契约。
+> 本文档即为开发契约 v0.5。后续新增能力前，先更新产品契约，再同步接口契约。
